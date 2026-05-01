@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WEB SURVEY HARGA PASAR By Mahyu Herdi</title>
+    
+    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="./icon-192.png">
+    <meta name="theme-color" content="#000000">
+
+    <style>
+        :root {
+            --ios-blue: #0a84ff;
+            --ios-red: #ff453a;
+            --ios-glass: rgba(28, 28, 30, 0.75);
+            --ios-border: rgba(255, 255, 255, 0.15);
+            --font-main: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * { box-sizing: border-box; }
+
+        body, html {
+            margin: 0; padding: 0;
+            height: 100%; width: 100%;
+            background-color: #000; color: #fff;
+            font-family: var(--font-main);
+            overflow: hidden; display: flex; flex-direction: column;
+        }
+
+        #viewport {
+            flex: 1; position: relative;
+            background: #111; display: flex;
+            align-items: center; justify-content: center;
+        }
+        
+        video { width: 100%; height: 100%; object-fit: cover; }
+
+        .btn-riwayat {
+            position: absolute; top: 20px; right: 20px; z-index: 15;
+            background: rgba(0,0,0,0.4); color: #fff; border: 1px solid var(--ios-border);
+            padding: 8px 14px; border-radius: 16px; font-size: 14px; font-weight: 500;
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            cursor: pointer; transition: 0.2s;
+        }
+        .btn-riwayat:active { transform: scale(0.95); }
+
+        #photo-preview {
+            position: absolute;
+            width: auto; height: 100%;
+            aspect-ratio: 3 / 4;
+            object-fit: cover; display: none; z-index: 5;
+        }
+
+        #ui-panel {
+            position: absolute;
+            bottom: 0; left: 0; width: 100%;
+            padding: 24px 20px 40px 20px;
+            background: var(--ios-glass);
+            backdrop-filter: blur(30px) saturate(150%);
+            -webkit-backdrop-filter: blur(30px) saturate(150%);
+            border-top: 1px solid var(--ios-border);
+            border-radius: 35px 35px 0 0;
+            z-index: 10;
+            box-shadow: 0 -15px 40px rgba(0,0,0,0.6);
+        }
+
+        .status-pill {
+            font-size: 12px; background: rgba(255,255,255,0.1);
+            padding: 6px 14px; border-radius: 20px;
+            display: inline-block; margin-bottom: 20px;
+            color: rgba(255,255,255,0.8); font-weight: 500;
+        }
+
+        .input-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+        .input-row { display: flex; gap: 12px; width: 100%; }
+
+        input {
+            width: 100%; background: rgba(255,255,255,0.08);
+            border: 1px solid var(--ios-border); border-radius: 16px;
+            padding: 16px; color: #fff; font-size: 16px;
+            outline: none; transition: 0.3s;
+        }
+        input::placeholder { color: rgba(255, 255, 255, 0.4); }
+        input:focus { background: rgba(255,255,255,0.15); border-color: var(--ios-blue); }
+
+        #harga { flex: 6; } #satuan { flex: 4; }
+
+        .btn {
+            width: 100%; padding: 18px; border: none; border-radius: 18px;
+            font-size: 17px; font-weight: 600; cursor: pointer;
+            transition: transform 0.1s; text-align: center;
+        }
+        .btn:active { transform: scale(0.96); opacity: 0.8; }
+        .btn-capture { background: #fff; color: #000; }
+        .btn-share { background: var(--ios-blue); color: #fff; margin-bottom: 12px; }
+        .btn-next { background: transparent; color: #fff; border: 1px solid var(--ios-border); }
+
+        #action-area { display: none; flex-direction: column; }
+        canvas { display: none; }
+
+        #flash {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; opacity: 0; z-index: 20; pointer-events: none;
+        }
+        .flash-anim { animation: flashEffect 0.3s ease-out; }
+        @keyframes flashEffect { 0% { opacity: 0.8; } 100% { opacity: 0; } }
+
+        #ios-modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            display: none; align-items: center; justify-content: center; z-index: 100;
+            opacity: 0; transition: opacity 0.3s ease;
+        }
+        #ios-modal-overlay.show { display: flex; opacity: 1; }
+        
+        .ios-modal {
+            background: var(--ios-glass); border: 1px solid var(--ios-border);
+            border-radius: 28px; padding: 24px; width: 85%; max-width: 350px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-align: center;
+        }
+        #ios-modal-overlay.show .ios-modal { transform: scale(1); }
+        
+        .ios-modal h3 { margin: 0 0 8px 0; font-size: 20px; font-weight: 600; }
+        .ios-modal p { margin: 0 0 20px 0; font-size: 14px; color: rgba(255,255,255,0.7); }
+        
+        .modal-actions { display: flex; gap: 12px; margin-top: 20px; }
+        .btn-modal {
+            flex: 1; padding: 14px; border: none; border-radius: 14px;
+            font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.2s;
+        }
+        .btn-modal:active { transform: scale(0.95); }
+        .btn-cancel { background: rgba(255,255,255,0.1); color: #fff; }
+        .btn-confirm { background: var(--ios-blue); color: #fff; }
+
+        .history-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 200; display: none; flex-direction: column;
+            transform: translateX(100%); transition: transform 0.3s ease;
+        }
+        .history-overlay.show { transform: translateX(0); }
+        
+        .history-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px; padding-top: 40px; background: var(--ios-glass);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--ios-border);
+        }
+        .history-header h3 { margin: 0; font-size: 18px; font-weight: 600; }
+        .history-header button {
+            background: transparent; border: none; color: var(--ios-blue);
+            font-size: 16px; font-weight: 500; cursor: pointer;
+        }
+        
+        #history-list { flex: 1; overflow-y: auto; padding: 15px; background: #000; }
+        .history-item {
+            background: rgba(255,255,255,0.05); border-radius: 16px; padding: 16px;
+            margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.08);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .history-item-info { flex: 1; }
+        .history-item-info h4 { margin: 0 0 6px 0; font-size: 16px; }
+        .history-item-info p { margin: 0; font-size: 12px; color: rgba(255,255,255,0.6); }
+        
+        .history-item-actions { display: flex; gap: 8px; }
+        .history-item-btn {
+            background: rgba(255,255,255,0.1); border: none; color: #fff;
+            padding: 8px 16px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer;
+            transition: 0.2s;
+        }
+        .history-item-btn:active { transform: scale(0.95); }
+        
+        .btn-delete-item {
+            background: rgba(255, 69, 58, 0.15); border: 1px solid rgba(255, 69, 58, 0.3); color: var(--ios-red);
+            padding: 8px 12px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-delete-item:active { transform: scale(0.95); }
+        
+        #detail-content { flex: 1; display: flex; flex-direction: column; background: #111; overflow: hidden; }
+        #detail-img { flex: 1; width: 100%; object-fit: contain; }
+        .detail-actions { padding: 20px; background: var(--ios-glass); border-top: 1px solid var(--ios-border); }
+    </style>
+</head>
+<body>
+
+    <div id="viewport">
+        <video id="cam" autoplay playsinline></video>
+        <img id="photo-preview">
+        <div id="flash"></div>
+        <button class="btn-riwayat" onclick="openHistory()">Riwayat</button>
+    </div>
+
+    <div id="ui-panel">
+        <center><div class="status-pill" id="status">Menginisialisasi Kamera...</div></center>
+        
+        <div class="input-group">
+            <input type="text" id="lokasi" placeholder="Lokasi Survei (Otomatis/Manual)">
+            <input type="text" id="barang" placeholder="Nama Barang">
+            <div class="input-row">
+                <input type="text" inputmode="numeric" id="harga" placeholder="Harga (Tanpa Titik)" oninput="formatRupiah(this)">
+                <input type="text" id="satuan" placeholder="Satuan (kg/pcs)">
+            </div>
+        </div>
+
+        <button class="btn btn-capture" id="snap-btn" onclick="capture()">Jepret Foto</button>
+
+        <div id="action-area">
+            <button class="btn btn-share" onclick="shareToWA()">Kirim ke WhatsApp</button>
+            <button class="btn btn-next" onclick="reset()">Lanjut Barang Baru</button>
+        </div>
+    </div>
+
+    <div id="ios-modal-overlay">
+        <div class="ios-modal">
+            <h3>Data Belum Lengkap</h3>
+            <p>Isi barang & harganya dulu ya sebelum lanjut foto.</p>
+            <div class="input-group" style="margin-bottom: 0;">
+                <input type="text" id="modal-barang" placeholder="Nama Barang">
+                <div class="input-row">
+                    <input type="text" inputmode="numeric" id="modal-harga" placeholder="Harga" oninput="formatRupiah(this)">
+                    <input type="text" id="modal-satuan" placeholder="Satuan (kg/pcs)">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-modal btn-cancel" onclick="closeModal()">Batal</button>
+                <button class="btn-modal btn-confirm" onclick="confirmModal()">Lanjut Jepret</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="history-modal" class="history-overlay">
+        <div class="history-header">
+            <h3>Riwayat Survei</h3>
+            <button onclick="closeHistory()">Selesai</button>
+        </div>
+        <div id="history-list"></div>
+    </div>
+
+    <div id="detail-modal" class="history-overlay" style="z-index: 201;">
+        <div class="history-header">
+            <button onclick="closeDetail()">◂ Kembali</button>
+            <h3 id="detail-title">Detail Barang</h3>
+            <div style="width: 60px;"></div> 
+        </div>
+        <div id="detail-content">
+            <img id="detail-img" src="">
+            <div class="detail-actions">
+                <button class="btn btn-share" onclick="shareHistoryItem()" style="margin:0;">Kirim ke WhatsApp</button>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="render-canvas"></canvas>
+
+    <script>
+        const video = document.getElementById('cam');
+        const canvas = document.getElementById('render-canvas');
+        const status = document.getElementById('status');
+        const preview = document.getElementById('photo-preview');
+        const snapBtn = document.getElementById('snap-btn');
+        let imageBlob = null;
+        let isCameraActive = false;
+
+        let db;
+        const request = indexedDB.open("SurveyDB", 1);
+        request.onupgradeneeded = (e) => {
+            db = e.target.result;
+            db.createObjectStore("surveys", { keyPath: "id" });
+        };
+        request.onsuccess = (e) => { db = e.target.result; };
+        request.onerror = (e) => { console.error("Database error: ", e.target.errorCode); };
+
+        function saveToDB(data) {
+            if (!db) return;
+            const tx = db.transaction("surveys", "readwrite");
+            tx.objectStore("surveys").put(data);
+        }
+
+        function deleteFromDB(id) {
+            if (!db) return;
+            if (!confirm("Yakin mau hapus data survei ini?")) return;
+            
+            const tx = db.transaction("surveys", "readwrite");
+            tx.objectStore("surveys").delete(id);
+            tx.oncomplete = () => { loadHistoryList(); };
+        }
+
+        async function startApp() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment', width: {ideal: 1920}, height: {ideal: 1080} } 
+                });
+                video.srcObject = stream;
+                status.innerText = "Kamera Aktif • GPS...";
+                isCameraActive = true;
+            } catch (e) {
+                status.innerText = "Kamera Ditolak/Mode Offline";
+                isCameraActive = false;
+            }
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(async (pos) => {
+                    const { latitude, longitude } = pos.coords;
+                    try {
+                        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+                        const data = await res.json();
+                        const parts = data.display_name.split(',');
+                        document.getElementById('lokasi').value = parts.slice(0, Math.min(parts.length, 3)).join(', ');
+                        status.innerText = isCameraActive ? "GPS Terkunci" : "GPS OK (Kamera Mati)";
+                    } catch {
+                        document.getElementById('lokasi').value = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+                    }
+                }, () => {
+                    if(isCameraActive) status.innerText = "GPS Off - Ketik Manual";
+                });
+            }
+        }
+
+        function formatRupiah(input) {
+            let value = input.value.replace(/[^0-9]/g, '');
+            input.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        function getYahYuDateTime() {
+            const now = new Date();
+            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            
+            const hours = now.getHours();
+            let ket = "Malam";
+            if (hours >= 5 && hours < 11) ket = "Pagi";
+            else if (hours >= 11 && hours < 15) ket = "Siang";
+            else if (hours >= 15 && hours < 19) ket = "Petang";
+
+            const timeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+            return `${days[now.getDay()]}, ${now.getDate().toString().padStart(2, '0')} ${months[now.getMonth()]} ${now.getFullYear()} ${timeStr} ${ket}`;
+        }
+
+        function openModal() {
+            document.getElementById('modal-barang').value = document.getElementById('barang').value;
+            document.getElementById('modal-harga').value = document.getElementById('harga').value;
+            document.getElementById('modal-satuan').value = document.getElementById('satuan').value;
+            
+            const overlay = document.getElementById('ios-modal-overlay');
+            overlay.style.display = 'flex';
+            setTimeout(() => overlay.classList.add('show'), 10);
+        }
+
+        function closeModal() {
+            const overlay = document.getElementById('ios-modal-overlay');
+            overlay.classList.remove('show');
+            setTimeout(() => overlay.style.display = 'none', 300);
+        }
+
+        function confirmModal() {
+            const mNama = document.getElementById('modal-barang').value;
+            const mHarga = document.getElementById('modal-harga').value;
+            
+            if(!mNama || !mHarga) {
+                const modal = document.querySelector('.ios-modal');
+                modal.style.transform = 'scale(1) translateX(-5px)';
+                setTimeout(() => modal.style.transform = 'scale(1) translateX(5px)', 50);
+                setTimeout(() => modal.style.transform = 'scale(1) translateX(0)', 100);
+                return;
+            }
+
+            document.getElementById('barang').value = mNama;
+            document.getElementById('harga').value = mHarga;
+            document.getElementById('satuan').value = document.getElementById('modal-satuan').value;
+            
+            closeModal();
+            setTimeout(() => capture(), 350); 
+        }
+
+        function capture() {
+            const bNama = document.getElementById('barang').value;
+            const bHarga = document.getElementById('harga').value;
+            const bSatuan = document.getElementById('satuan').value || 'pcs';
+            const bLokasi = document.getElementById('lokasi').value || '-';
+
+            if(!bNama || !bHarga) return openModal();
+
+            const f = document.getElementById('flash');
+            f.classList.add('flash-anim');
+            setTimeout(() => f.classList.remove('flash-anim'), 300);
+
+            const targetW = 1200;
+            const targetH = 1600;
+            canvas.width = targetW;
+            canvas.height = targetH;
+            const ctx = canvas.getContext('2d');
+
+            if(isCameraActive) {
+                const sW = video.videoWidth;
+                const sH = video.videoHeight;
+                let cW, cH, sx, sy;
+                
+                if (sW / sH > 3 / 4) {
+                    cH = sH; cW = sH * (3 / 4); sx = (sW - cW) / 2; sy = 0;
+                } else {
+                    cW = sW; cH = sW / (3 / 4); sx = 0; sy = (sH - cH) / 2;
+                }
+                ctx.drawImage(video, sx, sy, cW, cH, 0, 0, targetW, targetH);
+            } else {
+                ctx.fillStyle = "#222"; ctx.fillRect(0,0, targetW, targetH);
+            }
+
+            const timeStr = getYahYuDateTime();
+            
+            const padding = 40;
+            const marginX = 40;
+            const marginY = 40;
+            const gap = 15; 
+            
+            const lines = [
+                { text: bNama.toUpperCase(), font: "bold 58px sans-serif", color: "#ffffff", height: 60 },
+                { text: `Rp ${bHarga} / ${bSatuan}`, font: "bold 46px sans-serif", color: "#ffffff", height: 48 },
+                { text: bLokasi, font: "normal 32px sans-serif", color: "rgba(255, 255, 255, 0.9)", height: 36 },
+                { text: timeStr, font: "normal 28px sans-serif", color: "rgba(255, 255, 255, 0.8)", height: 32 }
+            ];
+
+            let maxTextWidth = 0;
+            let totalHeight = 0;
+
+            lines.forEach(line => {
+                ctx.font = line.font;
+                let w = ctx.measureText(line.text).width;
+                if (w > maxTextWidth) maxTextWidth = w;
+                totalHeight += line.height + gap;
+            });
+            totalHeight -= gap; 
+
+            const boxW = Math.min(maxTextWidth + (padding * 2), targetW - (marginX * 2));
+            const boxH = totalHeight + (padding * 2);
+            const startX = marginX;
+            const startY = targetH - boxH - marginY;
+
+            ctx.shadowColor = "rgba(0, 0, 0, 0.6)";
+            ctx.shadowBlur = 30;
+            ctx.shadowOffsetY = 15;
+            
+            ctx.fillStyle = "rgba(20, 20, 24, 0.75)"; 
+            ctx.beginPath();
+            ctx.roundRect(startX, startY, boxW, boxH, 32); 
+            ctx.fill();
+
+            ctx.shadowColor = "transparent"; 
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+            ctx.stroke();
+
+            ctx.textBaseline = "top";
+            let currentY = startY + padding;
+
+            lines.forEach(line => {
+                const textX = startX + padding;
+                ctx.font = line.font;
+                ctx.fillStyle = line.color;
+                ctx.fillText(line.text, textX, currentY);
+                currentY += line.height + gap;
+            });
+
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.95); 
+            
+            preview.src = dataUrl;
+            preview.style.display = 'block';
+            video.style.display = 'none';
+
+            saveToDB({
+                id: Date.now(),
+                nama: bNama,
+                harga: bHarga,
+                satuan: bSatuan,
+                lokasi: bLokasi,
+                waktu: timeStr,
+                image: dataUrl
+            });
+
+            const link = document.createElement('a');
+            link.download = `Survei_${bNama.replace(/\s+/g, '_')}.jpg`;
+            link.href = dataUrl;
+            link.click();
+
+            canvas.toBlob(blob => { imageBlob = new File([blob], "survey.jpg", {type:"image/jpeg"}); }, 'image/jpeg', 0.95);
+
+            snapBtn.style.display = 'none';
+            document.getElementById('action-area').style.display = 'flex';
+            status.innerText = "Foto Tersimpan Otomatis";
+        }
+
+        async function shareToWA() {
+            if (!imageBlob) return;
+            const bNama = document.getElementById('barang').value;
+            const bHarga = document.getElementById('harga').value;
+            const bSatuan = document.getElementById('satuan').value || 'pcs';
+            const bLokasi = document.getElementById('lokasi').value || '-';
+            const timeString = getYahYuDateTime();
+
+            const pesanText = `${bNama}\nRp ${bHarga} / ${bSatuan}\n${timeString}\n${bLokasi}`;
+
+            const data = {
+                files: [imageBlob],
+                title: 'Hasil Survei',
+                text: pesanText
+            };
+
+            if (navigator.canShare && navigator.canShare({ files: [imageBlob] })) {
+                try { await navigator.share(data); } catch (e) { console.log(e); }
+            } else {
+                alert("Browser belum support share langsung.");
+            }
+        }
+
+        function reset() {
+            document.getElementById('barang').value = "";
+            document.getElementById('harga').value = "";
+            document.getElementById('satuan').value = "";
+            
+            preview.style.display = 'none';
+            video.style.display = 'block';
+            snapBtn.style.display = 'block';
+            document.getElementById('action-area').style.display = 'none';
+            status.innerText = "Siap jepret berikutnya";
+        }
+
+        let currentDetailItem = null;
+
+        function openHistory() {
+            document.getElementById('history-modal').style.display = 'flex';
+            setTimeout(() => document.getElementById('history-modal').classList.add('show'), 10);
+            loadHistoryList();
+        }
+
+        function closeHistory() {
+            document.getElementById('history-modal').classList.remove('show');
+            setTimeout(() => document.getElementById('history-modal').style.display = 'none', 300);
+        }
+
+        function loadHistoryList() {
+            if (!db) return;
+            const tx = db.transaction("surveys", "readonly");
+            const store = tx.objectStore("surveys");
+            const req = store.getAll();
+            
+            req.onsuccess = () => {
+                const list = req.result.reverse(); 
+                const container = document.getElementById('history-list');
+                container.innerHTML = '';
+                
+                if(list.length === 0) {
+                    container.innerHTML = '<div style="text-align:center; margin-top:50px; color:rgba(255,255,255,0.4); font-size:14px;">Belum ada riwayat jepretan</div>';
+                    return;
+                }
+                
+                list.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'history-item';
+                    div.innerHTML = `
+                        <div class="history-item-info">
+                            <h4>${item.nama}</h4>
+                            <p>${item.waktu}</p>
+                        </div>
+                        <div class="history-item-actions">
+                            <button class="btn-delete-item" onclick="deleteFromDB(${item.id})">Hapus</button>
+                            <button class="history-item-btn" onclick="openDetail(${item.id})">Lihat</button>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            }
+        }
+
+        function openDetail(id) {
+            const tx = db.transaction("surveys", "readonly");
+            const req = tx.objectStore("surveys").get(id);
+            req.onsuccess = () => {
+                currentDetailItem = req.result;
+                document.getElementById('detail-img').src = currentDetailItem.image;
+                document.getElementById('detail-title').innerText = currentDetailItem.nama;
+                
+                document.getElementById('detail-modal').style.display = 'flex';
+                setTimeout(() => document.getElementById('detail-modal').classList.add('show'), 10);
+            }
+        }
+
+        function closeDetail() {
+            document.getElementById('detail-modal').classList.remove('show');
+            setTimeout(() => document.getElementById('detail-modal').style.display = 'none', 300);
+        }
+
+        async function shareHistoryItem() {
+            if (!currentDetailItem) return;
+            
+            const res = await fetch(currentDetailItem.image);
+            const blob = await res.blob();
+            const file = new File([blob], `Survei_${currentDetailItem.nama.replace(/\s+/g, '_')}.jpg`, {type: 'image/jpeg'});
+
+            const pesanText = `${currentDetailItem.nama}\nRp ${currentDetailItem.harga} / ${currentDetailItem.satuan}\n${currentDetailItem.waktu}\n${currentDetailItem.lokasi}`;
+
+            const data = {
+                files: [file],
+                title: 'Hasil Survei',
+                text: pesanText
+            };
+
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try { await navigator.share(data); } catch (e) { console.log(e); }
+            } else {
+                alert("Browser belum support share langsung.");
+            }
+        }
+
+        // Ini perintah wajib biar Service Worker jalan untuk mode offline
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker berhasil didaftarkan! Mode offline siap.'))
+                    .catch(err => console.log('Gagal daftar Service Worker: ', err));
+            });
+        }
+
+        window.onload = startApp;
+    </script>
+</body>
+</html>
