@@ -36,14 +36,16 @@
         
         video { width: 100%; height: 100%; object-fit: cover; }
 
-        .btn-riwayat {
-            position: absolute; top: 20px; right: 20px; z-index: 15;
+        .btn-top {
+            position: absolute; top: 20px; z-index: 15;
             background: rgba(0,0,0,0.4); color: #fff; border: 1px solid var(--ios-border);
             padding: 8px 14px; border-radius: 16px; font-size: 14px; font-weight: 500;
             backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
             cursor: pointer; transition: 0.2s;
         }
-        .btn-riwayat:active { transform: scale(0.95); }
+        .btn-top:active { transform: scale(0.95); }
+        .btn-riwayat { right: 20px; }
+        .btn-rekap { right: 100px; background: rgba(10, 132, 255, 0.3); border-color: var(--ios-blue); }
 
         #photo-preview {
             position: absolute;
@@ -182,6 +184,15 @@
         #detail-content { flex: 1; display: flex; flex-direction: column; background: #111; overflow: hidden; }
         #detail-img { flex: 1; width: 100%; object-fit: contain; }
         .detail-actions { padding: 20px; background: var(--ios-glass); border-top: 1px solid var(--ios-border); }
+
+        /* Tampilan Tabel Rekap */
+        .rekap-container { flex: 1; overflow-y: auto; padding: 20px; background: #000; }
+        .rekap-info { margin-bottom: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 16px; border: 1px solid var(--ios-border); }
+        .rekap-info p { margin: 5px 0; font-size: 14px; color: #ddd; }
+        .rekap-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .rekap-table th, .rekap-table td { padding: 12px 8px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .rekap-table th { color: var(--ios-blue); font-weight: 600; }
+        .rekap-table td { color: #fff; }
     </style>
 </head>
 <body>
@@ -190,7 +201,8 @@
         <video id="cam" autoplay playsinline></video>
         <img id="photo-preview">
         <div id="flash"></div>
-        <button class="btn-riwayat" onclick="openHistory()">Riwayat</button>
+        <button class="btn-top btn-rekap" onclick="openRekap()">Tabel Rekap</button>
+        <button class="btn-top btn-riwayat" onclick="openHistory()">Riwayat</button>
     </div>
 
     <div id="ui-panel">
@@ -237,6 +249,34 @@
             <button onclick="closeHistory()">Selesai</button>
         </div>
         <div id="history-list"></div>
+    </div>
+
+    <div id="rekap-modal" class="history-overlay">
+        <div class="history-header">
+            <h3>Rekap Survei</h3>
+            <button onclick="closeRekap()">Tutup</button>
+        </div>
+        <div class="rekap-container">
+            <div class="rekap-info">
+                <p>Nama peng survei : <b>Mahyu</b></p>
+                <p>Tgl : <b id="rekap-tgl"></b></p>
+                <p>Jam : <b id="rekap-jam"></b></p>
+            </div>
+            <table class="rekap-table">
+                <thead>
+                    <tr>
+                        <th>Nama Barang</th>
+                        <th>Harga Survei</th>
+                        <th>Satuan</th>
+                    </tr>
+                </thead>
+                <tbody id="rekap-body">
+                    </tbody>
+            </table>
+        </div>
+        <div class="detail-actions">
+            <button class="btn btn-share" onclick="copyRekapWA()" style="margin:0; background:#34C759;">📋 Copy Rapi ke WA</button>
+        </div>
     </div>
 
     <div id="detail-modal" class="history-overlay" style="z-index: 201;">
@@ -488,7 +528,7 @@
 
             snapBtn.style.display = 'none';
             document.getElementById('action-area').style.display = 'flex';
-            status.innerText = "Foto Tersimpan Otomatis";
+            status.innerText = "Foto Tersimpan Lokal";
         }
 
         async function shareToWA() {
@@ -526,6 +566,7 @@
             status.innerText = "Siap jepret berikutnya";
         }
 
+        // ================= FITUR RIWAYAT =================
         let currentDetailItem = null;
 
         function openHistory() {
@@ -593,7 +634,6 @@
 
         async function shareHistoryItem() {
             if (!currentDetailItem) return;
-            
             const res = await fetch(currentDetailItem.image);
             const blob = await res.blob();
             const file = new File([blob], `Survei_${currentDetailItem.nama.replace(/\s+/g, '_')}.jpg`, {type: 'image/jpeg'});
@@ -613,11 +653,118 @@
             }
         }
 
-        // Ini perintah wajib biar Service Worker jalan untuk mode offline
+        // ================= FITUR REKAP TABEL =================
+        function openRekap() {
+            document.getElementById('rekap-modal').style.display = 'flex';
+            setTimeout(() => document.getElementById('rekap-modal').classList.add('show'), 10);
+            
+            // Set Jam dan Tanggal saat ini
+            const now = new Date();
+            const tgl = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth()+1).toString().padStart(2, '0')}/${now.getFullYear()}`;
+            const jam = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+            
+            document.getElementById('rekap-tgl').innerText = tgl;
+            document.getElementById('rekap-jam').innerText = jam;
+
+            // Load data ke tabel
+            if (!db) return;
+            const tx = db.transaction("surveys", "readonly");
+            const req = tx.objectStore("surveys").getAll();
+            
+            req.onsuccess = () => {
+                const list = req.result; 
+                const tbody = document.getElementById('rekap-body');
+                tbody.innerHTML = '';
+                
+                if(list.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#888;">Belum ada data survei</td></tr>';
+                    return;
+                }
+                
+                list.forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${item.nama}</td>
+                        <td>Rp ${item.harga}</td>
+                        <td>${item.satuan}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+        }
+
+        function closeRekap() {
+            document.getElementById('rekap-modal').classList.remove('show');
+            setTimeout(() => document.getElementById('rekap-modal').style.display = 'none', 300);
+        }
+
+        function copyRekapWA() {
+            if (!db) return;
+            const tx = db.transaction("surveys", "readonly");
+            const req = tx.objectStore("surveys").getAll();
+            
+            req.onsuccess = () => {
+                const list = req.result;
+                if (list.length === 0) {
+                    alert("Belum ada data untuk direkap.");
+                    return;
+                }
+
+                const tgl = document.getElementById('rekap-tgl').innerText;
+                const jam = document.getElementById('rekap-jam').innerText;
+
+                // Memakai trik Monospace WA (```) agar tabel presisi
+                let text = "```\n"; 
+                text += "Nama peng survei : Mahyu\n";
+                text += "Tgl              : " + tgl + "\n";
+                text += "Jam              : " + jam + "\n\n";
+
+                // Menyesuaikan lebar kolom Nama Barang dinamis
+                let maxNama = 12; // Panjang minimal "Nama Barang"
+                list.forEach(item => {
+                    if(item.nama.length > maxNama) maxNama = item.nama.length;
+                });
+
+                // Header Tabel
+                text += "Nama Barang".padEnd(maxNama) + " | Harga Survei | Satuan\n";
+                text += "-".repeat(maxNama) + "-|--------------|-------\n";
+
+                // Isi Tabel
+                list.forEach(item => {
+                    const namaPad = item.nama.padEnd(maxNama);
+                    const hargaPad = item.harga.padStart(9);
+                    text += `${namaPad} | Rp ${hargaPad} | ${item.satuan}\n`;
+                });
+                text += "```";
+
+                // Proses Copy
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(text).then(() => {
+                        alert("Tabel berhasil di-copy! Format sudah dikunci presisi, tinggal paste ke WA.");
+                    }).catch(err => {
+                        alert("Gagal copy: " + err);
+                    });
+                } else {
+                    // Fallback copy kalau tidak support clipboard API
+                    let textArea = document.createElement("textarea");
+                    textArea.value = text;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    try {
+                        document.execCommand('copy');
+                        alert("Tabel berhasil di-copy! Tinggal paste ke WA.");
+                    } catch (err) {
+                        alert("Oops, gagal copy. Coba lagi.");
+                    }
+                    document.body.removeChild(textArea);
+                }
+            }
+        }
+
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('Service Worker berhasil didaftarkan! Mode offline siap.'))
+                    .then(reg => console.log('Service Worker aktif. Mode Offline PWA siap.'))
                     .catch(err => console.log('Gagal daftar Service Worker: ', err));
             });
         }
