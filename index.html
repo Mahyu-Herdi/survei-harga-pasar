@@ -45,7 +45,7 @@
         }
         .btn-riwayat:active { transform: scale(0.95); }
 
-        /* TAMBAHAN: Tombol Rekap di sebelah Riwayat */
+        /* Tombol Rekap */
         .btn-rekap {
             position: absolute; top: 20px; right: 105px; z-index: 15;
             background: rgba(10, 132, 255, 0.3); color: #fff; border: 1px solid var(--ios-blue);
@@ -193,7 +193,7 @@
         #detail-img { flex: 1; width: 100%; object-fit: contain; }
         .detail-actions { padding: 20px; background: var(--ios-glass); border-top: 1px solid var(--ios-border); }
 
-        /* TAMBAHAN CSS: Tabel Rekap dan Custom Alert */
+        /* Tabel Rekap dan Custom Alert */
         .rekap-container { flex: 1; overflow-y: auto; padding: 20px; background: #000; }
         .rekap-info { margin-bottom: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 16px; border: 1px solid var(--ios-border); }
         .rekap-info p { margin: 5px 0; font-size: 14px; color: #ddd; }
@@ -335,9 +335,6 @@
     <canvas id="render-canvas"></canvas>
 
     <script>
-        // =========================================================
-        // BLOK JAVASCRIPT BAWAAN ASLI (100% TIDAK DIUBAH)
-        // =========================================================
         const video = document.getElementById('cam');
         const canvas = document.getElementById('render-canvas');
         const status = document.getElementById('status');
@@ -695,20 +692,9 @@
             }
         }
 
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('Service Worker berhasil didaftarkan! Mode offline siap.'))
-                    .catch(err => console.log('Gagal daftar Service Worker: ', err));
-            });
-        }
-
-        window.onload = startApp;
-
-
-        // =========================================================
-        // BLOK TAMBAHAN BARU (TIDAK MENGGANGGU KODE DI ATAS)
-        // =========================================================
+        // =================================================================
+        // FITUR TAMBAHAN: ALERT CUSTOM & REKAP TABEL 
+        // =================================================================
         function showAlert(title, msg) {
             document.getElementById('alert-title').innerText = title;
             document.getElementById('alert-msg').innerText = msg;
@@ -808,6 +794,17 @@
                 }
             }
         }
+
+        // Ini perintah wajib biar Service Worker jalan untuk mode offline
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker berhasil didaftarkan! Mode offline siap.'))
+                    .catch(err => console.log('Gagal daftar Service Worker: ', err));
+            });
+        }
+
+        window.onload = startApp;
     </script>
 </body>
 </html>
