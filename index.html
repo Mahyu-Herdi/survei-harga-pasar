@@ -108,13 +108,14 @@
         .flash-anim { animation: flashEffect 0.3s ease-out; }
         @keyframes flashEffect { 0% { opacity: 0.8; } 100% { opacity: 0; } }
 
-        #ios-modal-overlay {
+        /* Modal Base */
+        .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.4); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
             display: none; align-items: center; justify-content: center; z-index: 100;
             opacity: 0; transition: opacity 0.3s ease;
         }
-        #ios-modal-overlay.show { display: flex; opacity: 1; }
+        .modal-overlay.show { display: flex; opacity: 1; }
         
         .ios-modal {
             background: var(--ios-glass); border: 1px solid var(--ios-border);
@@ -123,7 +124,7 @@
             transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             text-align: center;
         }
-        #ios-modal-overlay.show .ios-modal { transform: scale(1); }
+        .modal-overlay.show .ios-modal { transform: scale(1); }
         
         .ios-modal h3 { margin: 0 0 8px 0; font-size: 20px; font-weight: 600; }
         .ios-modal p { margin: 0 0 20px 0; font-size: 14px; color: rgba(255,255,255,0.7); }
@@ -136,6 +137,29 @@
         .btn-modal:active { transform: scale(0.95); }
         .btn-cancel { background: rgba(255,255,255,0.1); color: #fff; }
         .btn-confirm { background: var(--ios-blue); color: #fff; }
+
+        /* Custom iOS Alert Notification */
+        #ios-alert {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3);
+            z-index: 10001; justify-content: center; align-items: center;
+            backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+            opacity: 0; transition: opacity 0.2s ease;
+        }
+        #ios-alert.show { display: flex; opacity: 1; }
+        .alert-box {
+            background: rgba(40, 40, 40, 0.85); backdrop-filter: blur(25px);
+            border-radius: 14px; width: 270px; text-align: center; overflow: hidden;
+            transform: scale(0.9); transition: transform 0.2s cubic-bezier(0.17, 0.89, 0.32, 1.2);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        #ios-alert.show .alert-box { transform: scale(1); }
+        .alert-content { padding: 20px; }
+        .alert-btn {
+            width: 100%; padding: 14px; background: transparent; border: none;
+            border-top: 1px solid rgba(255,255,255,0.1); color: var(--ios-blue);
+            font-size: 17px; font-weight: 600; cursor: pointer; transition: 0.1s;
+        }
+        .alert-btn:active { background: rgba(255,255,255,0.1); }
 
         .history-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -225,7 +249,7 @@
         </div>
     </div>
 
-    <div id="ios-modal-overlay">
+    <div id="ios-modal-overlay" class="modal-overlay">
         <div class="ios-modal">
             <h3>Data Belum Lengkap</h3>
             <p>Isi barang & harganya dulu ya sebelum lanjut foto.</p>
@@ -240,6 +264,16 @@
                 <button class="btn-modal btn-cancel" onclick="closeModal()">Batal</button>
                 <button class="btn-modal btn-confirm" onclick="confirmModal()">Lanjut Jepret</button>
             </div>
+        </div>
+    </div>
+
+    <div id="ios-alert">
+        <div class="alert-box">
+            <div class="alert-content">
+                <b id="alert-title" style="font-size:17px; color:#fff;"></b><br>
+                <span id="alert-msg" style="font-size:14px; color:rgba(255,255,255,0.7); display:block; margin-top:5px;"></span>
+            </div>
+            <button class="alert-btn" onclick="closeAlert()">Oke</button>
         </div>
     </div>
 
@@ -258,9 +292,8 @@
         </div>
         <div class="rekap-container">
             <div class="rekap-info">
-                <p>Nama peng survei : <b>Mahyu</b></p>
+                <p>Nama Petugas : <b>Mahyu</b></p>
                 <p>Tgl : <b id="rekap-tgl"></b></p>
-                <p>Jam : <b id="rekap-jam"></b></p>
             </div>
             <table class="rekap-table">
                 <thead>
@@ -275,7 +308,7 @@
             </table>
         </div>
         <div class="detail-actions">
-            <button class="btn btn-share" onclick="copyRekapWA()" style="margin:0; background:#34C759;">📋 Copy Rapi ke WA</button>
+            <button class="btn btn-share" onclick="copyRekapWA()" style="margin:0; background:#34C759;">📋 Copy Data</button>
         </div>
     </div>
 
@@ -326,6 +359,20 @@
             const tx = db.transaction("surveys", "readwrite");
             tx.objectStore("surveys").delete(id);
             tx.oncomplete = () => { loadHistoryList(); };
+        }
+
+        // FUNGSI ALERT CUSTOM IOS
+        function showAlert(title, msg) {
+            document.getElementById('alert-title').innerText = title;
+            document.getElementById('alert-msg').innerText = msg;
+            const alertOverlay = document.getElementById('ios-alert');
+            alertOverlay.style.display = 'flex';
+            setTimeout(() => alertOverlay.classList.add('show'), 10);
+        }
+        function closeAlert() {
+            const alertOverlay = document.getElementById('ios-alert');
+            alertOverlay.classList.remove('show');
+            setTimeout(() => alertOverlay.style.display = 'none', 200);
         }
 
         async function startApp() {
@@ -392,384 +439,3 @@
         function closeModal() {
             const overlay = document.getElementById('ios-modal-overlay');
             overlay.classList.remove('show');
-            setTimeout(() => overlay.style.display = 'none', 300);
-        }
-
-        function confirmModal() {
-            const mNama = document.getElementById('modal-barang').value;
-            const mHarga = document.getElementById('modal-harga').value;
-            
-            if(!mNama || !mHarga) {
-                const modal = document.querySelector('.ios-modal');
-                modal.style.transform = 'scale(1) translateX(-5px)';
-                setTimeout(() => modal.style.transform = 'scale(1) translateX(5px)', 50);
-                setTimeout(() => modal.style.transform = 'scale(1) translateX(0)', 100);
-                return;
-            }
-
-            document.getElementById('barang').value = mNama;
-            document.getElementById('harga').value = mHarga;
-            document.getElementById('satuan').value = document.getElementById('modal-satuan').value;
-            
-            closeModal();
-            setTimeout(() => capture(), 350); 
-        }
-
-        function capture() {
-            const bNama = document.getElementById('barang').value;
-            const bHarga = document.getElementById('harga').value;
-            const bSatuan = document.getElementById('satuan').value || 'pcs';
-            const bLokasi = document.getElementById('lokasi').value || '-';
-
-            if(!bNama || !bHarga) return openModal();
-
-            const f = document.getElementById('flash');
-            f.classList.add('flash-anim');
-            setTimeout(() => f.classList.remove('flash-anim'), 300);
-
-            const targetW = 1200;
-            const targetH = 1600;
-            canvas.width = targetW;
-            canvas.height = targetH;
-            const ctx = canvas.getContext('2d');
-
-            if(isCameraActive) {
-                const sW = video.videoWidth;
-                const sH = video.videoHeight;
-                let cW, cH, sx, sy;
-                
-                if (sW / sH > 3 / 4) {
-                    cH = sH; cW = sH * (3 / 4); sx = (sW - cW) / 2; sy = 0;
-                } else {
-                    cW = sW; cH = sW / (3 / 4); sx = 0; sy = (sH - cH) / 2;
-                }
-                ctx.drawImage(video, sx, sy, cW, cH, 0, 0, targetW, targetH);
-            } else {
-                ctx.fillStyle = "#222"; ctx.fillRect(0,0, targetW, targetH);
-            }
-
-            const timeStr = getYahYuDateTime();
-            
-            const padding = 40;
-            const marginX = 40;
-            const marginY = 40;
-            const gap = 15; 
-            
-            const lines = [
-                { text: bNama.toUpperCase(), font: "bold 58px sans-serif", color: "#ffffff", height: 60 },
-                { text: `Rp ${bHarga} / ${bSatuan}`, font: "bold 46px sans-serif", color: "#ffffff", height: 48 },
-                { text: bLokasi, font: "normal 32px sans-serif", color: "rgba(255, 255, 255, 0.9)", height: 36 },
-                { text: timeStr, font: "normal 28px sans-serif", color: "rgba(255, 255, 255, 0.8)", height: 32 }
-            ];
-
-            let maxTextWidth = 0;
-            let totalHeight = 0;
-
-            lines.forEach(line => {
-                ctx.font = line.font;
-                let w = ctx.measureText(line.text).width;
-                if (w > maxTextWidth) maxTextWidth = w;
-                totalHeight += line.height + gap;
-            });
-            totalHeight -= gap; 
-
-            const boxW = Math.min(maxTextWidth + (padding * 2), targetW - (marginX * 2));
-            const boxH = totalHeight + (padding * 2);
-            const startX = marginX;
-            const startY = targetH - boxH - marginY;
-
-            ctx.shadowColor = "rgba(0, 0, 0, 0.6)";
-            ctx.shadowBlur = 30;
-            ctx.shadowOffsetY = 15;
-            
-            ctx.fillStyle = "rgba(20, 20, 24, 0.75)"; 
-            ctx.beginPath();
-            ctx.roundRect(startX, startY, boxW, boxH, 32); 
-            ctx.fill();
-
-            ctx.shadowColor = "transparent"; 
-            ctx.lineWidth = 2;
-            ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
-            ctx.stroke();
-
-            ctx.textBaseline = "top";
-            let currentY = startY + padding;
-
-            lines.forEach(line => {
-                const textX = startX + padding;
-                ctx.font = line.font;
-                ctx.fillStyle = line.color;
-                ctx.fillText(line.text, textX, currentY);
-                currentY += line.height + gap;
-            });
-
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.95); 
-            
-            preview.src = dataUrl;
-            preview.style.display = 'block';
-            video.style.display = 'none';
-
-            saveToDB({
-                id: Date.now(),
-                nama: bNama,
-                harga: bHarga,
-                satuan: bSatuan,
-                lokasi: bLokasi,
-                waktu: timeStr,
-                image: dataUrl
-            });
-
-            const link = document.createElement('a');
-            link.download = `Survei_${bNama.replace(/\s+/g, '_')}.jpg`;
-            link.href = dataUrl;
-            link.click();
-
-            canvas.toBlob(blob => { imageBlob = new File([blob], "survey.jpg", {type:"image/jpeg"}); }, 'image/jpeg', 0.95);
-
-            snapBtn.style.display = 'none';
-            document.getElementById('action-area').style.display = 'flex';
-            status.innerText = "Foto Tersimpan Lokal";
-        }
-
-        async function shareToWA() {
-            if (!imageBlob) return;
-            const bNama = document.getElementById('barang').value;
-            const bHarga = document.getElementById('harga').value;
-            const bSatuan = document.getElementById('satuan').value || 'pcs';
-            const bLokasi = document.getElementById('lokasi').value || '-';
-            const timeString = getYahYuDateTime();
-
-            const pesanText = `${bNama}\nRp ${bHarga} / ${bSatuan}\n${timeString}\n${bLokasi}`;
-
-            const data = {
-                files: [imageBlob],
-                title: 'Hasil Survei',
-                text: pesanText
-            };
-
-            if (navigator.canShare && navigator.canShare({ files: [imageBlob] })) {
-                try { await navigator.share(data); } catch (e) { console.log(e); }
-            } else {
-                alert("Browser belum support share langsung.");
-            }
-        }
-
-        function reset() {
-            document.getElementById('barang').value = "";
-            document.getElementById('harga').value = "";
-            document.getElementById('satuan').value = "";
-            
-            preview.style.display = 'none';
-            video.style.display = 'block';
-            snapBtn.style.display = 'block';
-            document.getElementById('action-area').style.display = 'none';
-            status.innerText = "Siap jepret berikutnya";
-        }
-
-        // ================= FITUR RIWAYAT =================
-        let currentDetailItem = null;
-
-        function openHistory() {
-            document.getElementById('history-modal').style.display = 'flex';
-            setTimeout(() => document.getElementById('history-modal').classList.add('show'), 10);
-            loadHistoryList();
-        }
-
-        function closeHistory() {
-            document.getElementById('history-modal').classList.remove('show');
-            setTimeout(() => document.getElementById('history-modal').style.display = 'none', 300);
-        }
-
-        function loadHistoryList() {
-            if (!db) return;
-            const tx = db.transaction("surveys", "readonly");
-            const store = tx.objectStore("surveys");
-            const req = store.getAll();
-            
-            req.onsuccess = () => {
-                const list = req.result.reverse(); 
-                const container = document.getElementById('history-list');
-                container.innerHTML = '';
-                
-                if(list.length === 0) {
-                    container.innerHTML = '<div style="text-align:center; margin-top:50px; color:rgba(255,255,255,0.4); font-size:14px;">Belum ada riwayat jepretan</div>';
-                    return;
-                }
-                
-                list.forEach(item => {
-                    const div = document.createElement('div');
-                    div.className = 'history-item';
-                    div.innerHTML = `
-                        <div class="history-item-info">
-                            <h4>${item.nama}</h4>
-                            <p>${item.waktu}</p>
-                        </div>
-                        <div class="history-item-actions">
-                            <button class="btn-delete-item" onclick="deleteFromDB(${item.id})">Hapus</button>
-                            <button class="history-item-btn" onclick="openDetail(${item.id})">Lihat</button>
-                        </div>
-                    `;
-                    container.appendChild(div);
-                });
-            }
-        }
-
-        function openDetail(id) {
-            const tx = db.transaction("surveys", "readonly");
-            const req = tx.objectStore("surveys").get(id);
-            req.onsuccess = () => {
-                currentDetailItem = req.result;
-                document.getElementById('detail-img').src = currentDetailItem.image;
-                document.getElementById('detail-title').innerText = currentDetailItem.nama;
-                
-                document.getElementById('detail-modal').style.display = 'flex';
-                setTimeout(() => document.getElementById('detail-modal').classList.add('show'), 10);
-            }
-        }
-
-        function closeDetail() {
-            document.getElementById('detail-modal').classList.remove('show');
-            setTimeout(() => document.getElementById('detail-modal').style.display = 'none', 300);
-        }
-
-        async function shareHistoryItem() {
-            if (!currentDetailItem) return;
-            const res = await fetch(currentDetailItem.image);
-            const blob = await res.blob();
-            const file = new File([blob], `Survei_${currentDetailItem.nama.replace(/\s+/g, '_')}.jpg`, {type: 'image/jpeg'});
-
-            const pesanText = `${currentDetailItem.nama}\nRp ${currentDetailItem.harga} / ${currentDetailItem.satuan}\n${currentDetailItem.waktu}\n${currentDetailItem.lokasi}`;
-
-            const data = {
-                files: [file],
-                title: 'Hasil Survei',
-                text: pesanText
-            };
-
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                try { await navigator.share(data); } catch (e) { console.log(e); }
-            } else {
-                alert("Browser belum support share langsung.");
-            }
-        }
-
-        // ================= FITUR REKAP TABEL =================
-        function openRekap() {
-            document.getElementById('rekap-modal').style.display = 'flex';
-            setTimeout(() => document.getElementById('rekap-modal').classList.add('show'), 10);
-            
-            // Set Jam dan Tanggal saat ini
-            const now = new Date();
-            const tgl = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth()+1).toString().padStart(2, '0')}/${now.getFullYear()}`;
-            const jam = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-            
-            document.getElementById('rekap-tgl').innerText = tgl;
-            document.getElementById('rekap-jam').innerText = jam;
-
-            // Load data ke tabel
-            if (!db) return;
-            const tx = db.transaction("surveys", "readonly");
-            const req = tx.objectStore("surveys").getAll();
-            
-            req.onsuccess = () => {
-                const list = req.result; 
-                const tbody = document.getElementById('rekap-body');
-                tbody.innerHTML = '';
-                
-                if(list.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#888;">Belum ada data survei</td></tr>';
-                    return;
-                }
-                
-                list.forEach(item => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${item.nama}</td>
-                        <td>Rp ${item.harga}</td>
-                        <td>${item.satuan}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            }
-        }
-
-        function closeRekap() {
-            document.getElementById('rekap-modal').classList.remove('show');
-            setTimeout(() => document.getElementById('rekap-modal').style.display = 'none', 300);
-        }
-
-        function copyRekapWA() {
-            if (!db) return;
-            const tx = db.transaction("surveys", "readonly");
-            const req = tx.objectStore("surveys").getAll();
-            
-            req.onsuccess = () => {
-                const list = req.result;
-                if (list.length === 0) {
-                    alert("Belum ada data untuk direkap.");
-                    return;
-                }
-
-                const tgl = document.getElementById('rekap-tgl').innerText;
-                const jam = document.getElementById('rekap-jam').innerText;
-
-                // Memakai trik Monospace WA (```) agar tabel presisi
-                let text = "```\n"; 
-                text += "Nama peng survei : Mahyu\n";
-                text += "Tgl              : " + tgl + "\n";
-                text += "Jam              : " + jam + "\n\n";
-
-                // Menyesuaikan lebar kolom Nama Barang dinamis
-                let maxNama = 12; // Panjang minimal "Nama Barang"
-                list.forEach(item => {
-                    if(item.nama.length > maxNama) maxNama = item.nama.length;
-                });
-
-                // Header Tabel
-                text += "Nama Barang".padEnd(maxNama) + " | Harga Survei | Satuan\n";
-                text += "-".repeat(maxNama) + "-|--------------|-------\n";
-
-                // Isi Tabel
-                list.forEach(item => {
-                    const namaPad = item.nama.padEnd(maxNama);
-                    const hargaPad = item.harga.padStart(9);
-                    text += `${namaPad} | Rp ${hargaPad} | ${item.satuan}\n`;
-                });
-                text += "```";
-
-                // Proses Copy
-                if (navigator.clipboard && window.isSecureContext) {
-                    navigator.clipboard.writeText(text).then(() => {
-                        alert("Tabel berhasil di-copy! Format sudah dikunci presisi, tinggal paste ke WA.");
-                    }).catch(err => {
-                        alert("Gagal copy: " + err);
-                    });
-                } else {
-                    // Fallback copy kalau tidak support clipboard API
-                    let textArea = document.createElement("textarea");
-                    textArea.value = text;
-                    document.body.appendChild(textArea);
-                    textArea.select();
-                    try {
-                        document.execCommand('copy');
-                        alert("Tabel berhasil di-copy! Tinggal paste ke WA.");
-                    } catch (err) {
-                        alert("Oops, gagal copy. Coba lagi.");
-                    }
-                    document.body.removeChild(textArea);
-                }
-            }
-        }
-
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('Service Worker aktif. Mode Offline PWA siap.'))
-                    .catch(err => console.log('Gagal daftar Service Worker: ', err));
-            });
-        }
-
-        window.onload = startApp;
-    </script>
-</body>
-</html>
