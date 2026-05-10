@@ -13,6 +13,7 @@
         :root {
             --ios-blue: #0a84ff;
             --ios-red: #ff453a;
+            --ios-green: #34c759;
             --ios-glass: rgba(28, 28, 30, 0.75);
             --ios-border: rgba(255, 255, 255, 0.15);
             --font-main: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -22,13 +23,9 @@
 
         body, html {
             margin: 0; padding: 0; height: 100%; width: 100%;
-            background-color: #000; color: #fff;
-            font-family: var(--font-main);
+            background-color: #000; color: #fff; font-family: var(--font-main);
             overflow: hidden; display: flex; flex-direction: column;
         }
-
-        /* Tampilan Utama Kamera (Sembunyi dulu sebelum login) */
-        #main-app { display: none; width: 100%; height: 100%; flex-direction: column; }
 
         #viewport {
             flex: 1; position: relative; background: #111; display: flex;
@@ -46,10 +43,11 @@
         .btn-top:active { transform: scale(0.95); }
         .btn-riwayat { right: 20px; }
         .btn-rekap { right: 105px; background: rgba(10, 132, 255, 0.3); border-color: var(--ios-blue); }
+        .btn-admin { left: 20px; padding: 8px 12px; background: transparent; border: none; font-size: 20px; }
 
         #photo-preview {
-            position: absolute; width: auto; height: 100%;
-            aspect-ratio: 3 / 4; object-fit: cover; display: none; z-index: 5;
+            position: absolute; width: auto; height: 100%; aspect-ratio: 3/4;
+            object-fit: cover; display: none; z-index: 5;
         }
 
         #ui-panel {
@@ -61,18 +59,16 @@
         }
 
         .status-pill {
-            font-size: 12px; background: rgba(255,255,255,0.1);
-            padding: 6px 14px; border-radius: 20px; display: inline-block; margin-bottom: 20px;
-            color: rgba(255,255,255,0.8); font-weight: 500;
+            font-size: 12px; background: rgba(255,255,255,0.1); padding: 6px 14px; border-radius: 20px;
+            display: inline-block; margin-bottom: 20px; color: rgba(255,255,255,0.8); font-weight: 500;
         }
 
         .input-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
         .input-row { display: flex; gap: 12px; width: 100%; }
 
         input {
-            width: 100%; background: rgba(255,255,255,0.08);
-            border: 1px solid var(--ios-border); border-radius: 16px;
-            padding: 16px; color: #fff; font-size: 16px; outline: none; transition: 0.3s;
+            width: 100%; background: rgba(255,255,255,0.08); border: 1px solid var(--ios-border);
+            border-radius: 16px; padding: 16px; color: #fff; font-size: 16px; outline: none; transition: 0.3s;
         }
         input::placeholder { color: rgba(255, 255, 255, 0.4); }
         input:focus { background: rgba(255,255,255,0.15); border-color: var(--ios-blue); }
@@ -98,11 +94,11 @@
         .flash-anim { animation: flashEffect 0.3s ease-out; }
         @keyframes flashEffect { 0% { opacity: 0.8; } 100% { opacity: 0; } }
 
-        /* OVERLAYS & MODALS */
+        /* OVERLAYS & MODALS (iOS Style) */
         .overlay-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.4); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            display: none; align-items: center; justify-content: center; z-index: 100;
+            display: none; align-items: center; justify-content: center; z-index: 1000;
             opacity: 0; transition: opacity 0.3s ease;
         }
         .overlay-screen.show { display: flex; opacity: 1; }
@@ -126,6 +122,7 @@
         .btn-cancel { background: rgba(255,255,255,0.1); color: #fff; }
         .btn-confirm { background: var(--ios-blue); color: #fff; }
 
+        /* SLIDE PANELS (Riwayat, Rekap, Admin Panel) */
         .slide-panel {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; z-index: 200; display: none; flex-direction: column;
@@ -176,6 +173,19 @@
         .rekap-table th { color: var(--ios-blue); font-weight: 600; }
         .rekap-table td { color: #fff; }
 
+        /* TAMPILAN DASHBOARD ADMIN */
+        #admin-panel { z-index: 5000; }
+        .admin-search-area { padding: 20px; background: var(--ios-glass); border-bottom: 1px solid var(--ios-border); }
+        .admin-card {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px; padding: 16px; margin-bottom: 12px;
+        }
+        .admin-card-head { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; }
+        .admin-card-head b { font-size: 16px; color: #fff; }
+        .admin-card-head span { color: var(--ios-green); font-weight: bold; }
+        .admin-card-body p { margin: 4px 0; font-size: 13px; color: #aaa; display: flex; align-items: center; gap: 6px; }
+
+        /* ALERT SIMPLE */
         #ios-alert {
             display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4);
             z-index: 10001; justify-content: center; align-items: center; backdrop-filter: blur(5px);
@@ -190,103 +200,67 @@
             border-top: 1px solid rgba(255,255,255,0.1); color: var(--ios-blue);
             font-size: 17px; font-weight: 600; cursor: pointer;
         }
-
-        /* TAMPILAN LOGIN AWAL */
-        #login-screen {
-            position: fixed; inset: 0; background: #000; z-index: 9000;
-            display: flex; align-items: center; justify-content: center; flex-direction: column;
-            background-image: radial-gradient(circle at top, #111 0%, #000 100%);
-        }
-        .login-box {
-            background: var(--ios-glass); padding: 30px 20px; border-radius: 28px;
-            width: 85%; max-width: 350px; border: 1px solid var(--ios-border); text-align: center;
-        }
-        .login-box h2 { margin: 0 0 5px 0; font-size: 22px; }
-        .login-box p { color: #888; font-size: 14px; margin-bottom: 25px; }
-        .login-btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
-
-        /* TAMPILAN DASHBOARD ADMIN */
-        #admin-panel {
-            display: none; position: fixed; inset: 0; background: #000; z-index: 5000;
-            flex-direction: column;
-        }
-        .admin-search-area { padding: 20px; background: var(--ios-glass); border-bottom: 1px solid var(--ios-border); }
-        .admin-card {
-            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 16px; padding: 16px; margin-bottom: 12px;
-        }
-        .admin-card-head { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; }
-        .admin-card-head b { font-size: 16px; color: #fff; }
-        .admin-card-head span { color: var(--ios-green, #34c759); font-weight: bold; }
-        .admin-card-body p { margin: 4px 0; font-size: 13px; color: #aaa; display: flex; align-items: center; gap: 6px; }
     </style>
 </head>
 <body>
 
-    <!-- LAYAR LOGIN AWAL -->
-    <div id="login-screen">
-        <div class="login-box">
-            <h2>Survey Pasar</h2>
-            <p>Masukkan Nama atau Password</p>
-            <input type="text" id="login-input" placeholder="Nama / Password" style="text-align: center;">
-            
-            <div class="login-btn-group">
-                <button class="btn btn-capture" onclick="loginPetugas()">Mulai Survei</button>
-                <button class="btn btn-next" onclick="loginAdmin()">Login Admin</button>
+    <!-- APLIKASI UTAMA (KAMERA) -->
+    <div id="viewport">
+        <video id="cam" autoplay playsinline></video>
+        <img id="photo-preview">
+        <div id="flash"></div>
+        
+        <!-- Navigasi Atas -->
+        <button class="btn-top btn-admin" onclick="openAdminAuth()">📊</button>
+        <button class="btn-top btn-rekap" onclick="openRekap()">Tabel Rekap</button>
+        <button class="btn-top btn-riwayat" onclick="openHistory()">Riwayat</button>
+    </div>
+
+    <!-- PANEL INPUT BAWAH -->
+    <div id="ui-panel">
+        <center><div class="status-pill" id="status">Menginisialisasi Kamera...</div></center>
+        
+        <div class="input-group">
+            <input type="text" id="lokasi" placeholder="Lokasi Survei (Otomatis/Manual)">
+            <input type="text" id="barang" placeholder="Nama Barang">
+            <div class="input-row">
+                <input type="text" inputmode="numeric" id="harga" placeholder="Harga (Tanpa Titik)" oninput="formatRupiah(this)">
+                <input type="text" id="satuan" placeholder="Satuan (kg/pcs)">
+            </div>
+        </div>
+
+        <button class="btn btn-capture" id="snap-btn" onclick="capture()">Jepret Foto</button>
+
+        <div id="action-area">
+            <button class="btn btn-share" onclick="shareToWA()">Kirim ke WhatsApp</button>
+            <button class="btn btn-next" onclick="reset()">Lanjut Barang Baru</button>
+        </div>
+    </div>
+
+    <!-- MODAL 1: SET NAMA PETUGAS (MUNCUL SEKALI AJA) -->
+    <div id="petugas-modal-overlay" class="overlay-screen">
+        <div class="ios-modal">
+            <h3>Siapa Namamu?</h3>
+            <p>Isi nama lengkap untuk pendataan. Ini cuma diminta sekali kok.</p>
+            <input type="text" id="input-petugas-name" placeholder="Nama Lengkap" style="margin-bottom: 20px; text-align: center;">
+            <button class="btn btn-capture" onclick="savePetugasName()">Simpan & Lanjut</button>
+        </div>
+    </div>
+
+    <!-- MODAL 2: LOGIN ADMIN -->
+    <div id="admin-auth-overlay" class="overlay-screen">
+        <div class="ios-modal">
+            <h3>Login Admin</h3>
+            <p>Masukkan password untuk melihat seluruh data pusat.</p>
+            <input type="password" id="input-admin-pass" placeholder="Password" style="margin-bottom: 20px; text-align: center;">
+            <div class="modal-actions">
+                <button class="btn-modal btn-cancel" onclick="closeAdminAuth()">Batal</button>
+                <button class="btn-modal btn-confirm" onclick="prosesLoginAdmin()">Login</button>
             </div>
         </div>
     </div>
 
-    <!-- TAMPILAN DASHBOARD ADMIN -->
-    <div id="admin-panel">
-        <div class="panel-header" style="padding-top: 40px;">
-            <h3>Data Survei Masuk</h3>
-            <button onclick="logoutApp()">Keluar</button>
-        </div>
-        <div class="admin-search-area">
-            <div class="input-group" style="margin-bottom:0;">
-                <input type="text" id="search-petugas" placeholder="🔍 Cari Nama Petugas..." onkeyup="renderAdminData()">
-                <input type="text" id="search-barang" placeholder="📦 Cari Nama Barang..." onkeyup="renderAdminData()">
-            </div>
-        </div>
-        <div class="list-container" id="admin-list-container">
-            <div style="text-align:center; margin-top:40px; color:#666;">Memuat data...</div>
-        </div>
-    </div>
-
-    <!-- TAMPILAN APLIKASI PETUGAS (Kamera) -->
-    <div id="main-app">
-        <div id="viewport">
-            <video id="cam" autoplay playsinline></video>
-            <img id="photo-preview">
-            <div id="flash"></div>
-            <button class="btn-top btn-rekap" onclick="openRekap()">Tabel Rekap</button>
-            <button class="btn-top btn-riwayat" onclick="openHistory()">Riwayat</button>
-        </div>
-
-        <div id="ui-panel">
-            <center><div class="status-pill" id="status">Kamera Bersiap...</div></center>
-            
-            <div class="input-group">
-                <!-- Input nama petugas dihapus, diambil dari login -->
-                <input type="text" id="lokasi" placeholder="Lokasi Survei (Otomatis/Manual)">
-                <input type="text" id="barang" placeholder="Nama Barang">
-                <div class="input-row">
-                    <input type="text" inputmode="numeric" id="harga" placeholder="Harga (Tanpa Titik)" oninput="formatRupiah(this)">
-                    <input type="text" id="satuan" placeholder="Satuan (kg/pcs)">
-                </div>
-            </div>
-
-            <button class="btn btn-capture" id="snap-btn" onclick="capture()">Jepret Foto</button>
-
-            <div id="action-area">
-                <button class="btn btn-share" onclick="shareToWA()">Kirim ke WhatsApp</button>
-                <button class="btn btn-next" onclick="reset()">Lanjut Barang Baru</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL PERINGATAN KOSONG -->
+    <!-- MODAL 3: PERINGATAN INPUT KOSONG -->
     <div id="ios-modal-overlay" class="overlay-screen">
         <div class="ios-modal">
             <h3>Data Belum Lengkap</h3>
@@ -305,16 +279,33 @@
         </div>
     </div>
 
-    <!-- RIWAYAT PETUGAS -->
+    <!-- DASHBOARD ADMIN (GLOBAL DATA) -->
+    <div id="admin-panel" class="slide-panel">
+        <div class="panel-header">
+            <h3>Data Survei Global</h3>
+            <button onclick="closeAdminPanel()">Tutup</button>
+        </div>
+        <div class="admin-search-area">
+            <div class="input-group" style="margin-bottom:0;">
+                <input type="text" id="search-petugas" placeholder="🔍 Cari Nama Petugas..." onkeyup="renderAdminData()">
+                <input type="text" id="search-barang" placeholder="📦 Cari Nama Barang..." onkeyup="renderAdminData()">
+            </div>
+        </div>
+        <div class="list-container" id="admin-list-container">
+            <div style="text-align:center; margin-top:40px; color:#666;">Memuat data...</div>
+        </div>
+    </div>
+
+    <!-- RIWAYAT LOKAL (PETUGAS) -->
     <div id="history-modal" class="slide-panel">
         <div class="panel-header">
-            <h3>Riwayat Survei</h3>
+            <h3>Riwayat Saya</h3>
             <button onclick="closeHistory()">Selesai</button>
         </div>
         <div class="list-container" id="history-list"></div>
     </div>
 
-    <!-- DETAIL FOTO PETUGAS -->
+    <!-- DETAIL FOTO -->
     <div id="detail-modal" class="slide-panel" style="z-index: 201;">
         <div class="panel-header">
             <button onclick="closeDetail()">◂ Kembali</button>
@@ -329,16 +320,17 @@
         </div>
     </div>
 
-    <!-- REKAP PETUGAS -->
+    <!-- REKAP LOKAL (PETUGAS) -->
     <div id="rekap-modal" class="slide-panel">
         <div class="panel-header">
-            <h3>Rekap Survei</h3>
+            <h3>Rekap Saya</h3>
             <button onclick="closeRekap()">Tutup</button>
         </div>
         <div class="list-container">
             <div class="rekap-info">
                 <p>Nama Petugas : <b id="nama-petugas-rekap"></b></p>
                 <p>Tgl : <b id="rekap-tgl"></b></p>
+                <p style="font-size: 11px; margin-top: 10px; color: var(--ios-blue); cursor: pointer;" onclick="gantiNamaPetugas()">✏️ Ketuk untuk ganti nama petugas</p>
             </div>
             <table class="rekap-table">
                 <thead><tr><th>Nama Barang</th><th>Harga</th><th>Satuan</th></tr></thead>
@@ -346,7 +338,7 @@
             </table>
         </div>
         <div class="detail-actions">
-            <button class="btn btn-share" onclick="copyRekapWA()" style="margin:0; background:#34C759;">📋 Copy Data Rekap</button>
+            <button class="btn btn-share" onclick="copyRekapWA()" style="margin:0; background:#34C759; margin-bottom: 10px;">📋 Copy Data Rekap</button>
             <button class="btn btn-next" onclick="bersihkanSesi()" style="border-color: rgba(255, 69, 58, 0.4); color: var(--ios-red);">🧹 Bersihkan Sesi (Mulai Baru)</button>
         </div>
     </div>
@@ -365,108 +357,14 @@
     <canvas id="render-canvas"></canvas>
 
     <script>
-        // --- GANTI URL WEB APP KAMU DI SINI ---
+        // =========================================================
+        // URL GOOGLE APPS SCRIPT (JANGAN LUPA DIGANTI)
+        // =========================================================
         const gasUrl = "https://script.google.com/macros/s/AKfycbwYcFsxGsDrsx_D594hK7M_XOrwbCJbkPEiOjLiEFzC_7_G3cr3e1pUsI29Lb4P3eGGrQ/exec"; 
 
-        let NAMA_PETUGAS_AKTIF = "";
         let db;
-        let adminDataMaster = []; // Tempat simpan data admin yg ditarik dr server
+        let adminDataMaster = []; 
 
-        // Setup Database Lokal
-        const request = indexedDB.open("SurveyDB", 1);
-        request.onupgradeneeded = (e) => {
-            db = e.target.result;
-            db.createObjectStore("surveys", { keyPath: "id" });
-        };
-        request.onsuccess = (e) => { db = e.target.result; };
-
-        // --- SISTEM LOGIN ---
-        function loginPetugas() {
-            const inputVal = document.getElementById('login-input').value.trim();
-            if(!inputVal) {
-                showAlert("Perhatian", "Tolong isi nama lengkap kamu buat laporan.");
-                return;
-            }
-            
-            // Set nama petugas, hide login, show app
-            NAMA_PETUGAS_AKTIF = inputVal;
-            document.getElementById('nama-petugas-rekap').innerText = NAMA_PETUGAS_AKTIF;
-            
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('main-app').style.display = 'flex';
-            
-            startApp(); // Mulai nyalain kamera
-        }
-
-        function loginAdmin() {
-            const pass = document.getElementById('login-input').value;
-            if(!pass) return showAlert("Admin", "Masukkan password admin!");
-
-            document.getElementById('login-input').value = "Loading data...";
-            
-            fetch(gasUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ action: "login_admin", password: pass })
-            }).then(r => r.json()).then(res => {
-                document.getElementById('login-input').value = "";
-                if(res.status === "sukses_admin") {
-                    document.getElementById('login-screen').style.display = 'none';
-                    document.getElementById('admin-panel').style.display = 'flex';
-                    
-                    adminDataMaster = res.data;
-                    renderAdminData();
-                } else {
-                    showAlert("Gagal", res.pesan);
-                }
-            }).catch(e => {
-                document.getElementById('login-input').value = pass;
-                showAlert("Error", "Gagal menghubungi server. Pastikan internet aktif.");
-            });
-        }
-
-        function logoutApp() {
-            window.location.reload(); // Refresh balik ke layar login
-        }
-
-        // --- RENDER DASHBOARD ADMIN ---
-        function renderAdminData() {
-            const qPetugas = document.getElementById('search-petugas').value.toLowerCase();
-            const qBarang = document.getElementById('search-barang').value.toLowerCase();
-            const container = document.getElementById('admin-list-container');
-            
-            const filtered = adminDataMaster.filter(d => {
-                const p = (d.petugas || "").toLowerCase();
-                const b = (d.nama_barang || "").toLowerCase();
-                return p.includes(qPetugas) && b.includes(qBarang);
-            });
-
-            if(filtered.length === 0) {
-                container.innerHTML = `<div style="text-align:center; margin-top:40px; color:#666;">Tidak ada data ditemukan.</div>`;
-                return;
-            }
-
-            container.innerHTML = '';
-            filtered.forEach(item => {
-                container.innerHTML += `
-                    <div class="admin-card">
-                        <div class="admin-card-head">
-                            <b>📦 ${item.nama_barang}</b>
-                            <span>Rp ${item.harga}/${item.satuan}</span>
-                        </div>
-                        <div class="admin-card-body">
-                            <p>👤 ${item.petugas}</p>
-                            <p>🕒 ${item.tanggal} • ${item.jam}</p>
-                            <p>📍 ${item.lokasi}</p>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        // ==========================================
-        // KODE KAMERA DAN SISTEM SURVEI PETUGAS
-        // ==========================================
         const video = document.getElementById('cam');
         const canvas = document.getElementById('render-canvas');
         const status = document.getElementById('status');
@@ -475,6 +373,15 @@
         let imageBlob = null;
         let isCameraActive = false;
 
+        // Init IndexedDB
+        const request = indexedDB.open("SurveyDB", 1);
+        request.onupgradeneeded = (e) => {
+            db = e.target.result;
+            db.createObjectStore("surveys", { keyPath: "id" });
+        };
+        request.onsuccess = (e) => { db = e.target.result; };
+
+        // Nyalakan Kamera Langsung
         async function startApp() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -524,27 +431,123 @@
             return `${days[now.getDay()]}, ${now.getDate().toString().padStart(2, '0')} ${months[now.getMonth()]} ${now.getFullYear()} ${timeStr} ${ket}`;
         }
 
+        // --- SISTEM PETUGAS (LOKAL) ---
+        function savePetugasName() {
+            let val = document.getElementById('input-petugas-name').value.trim();
+            if (!val) return showAlert("Peringatan", "Nama harus diisi.");
+            
+            localStorage.setItem("mhy_petugas", val);
+            document.getElementById('petugas-modal-overlay').classList.remove('show');
+            setTimeout(() => {
+                document.getElementById('petugas-modal-overlay').style.display = 'none';
+                capture(); // Lanjut jepret otomatis
+            }, 300);
+        }
+
+        function gantiNamaPetugas() {
+            closeRekap();
+            setTimeout(() => {
+                document.getElementById('input-petugas-name').value = localStorage.getItem("mhy_petugas") || "";
+                document.getElementById('petugas-modal-overlay').style.display = 'flex';
+                setTimeout(() => document.getElementById('petugas-modal-overlay').classList.add('show'), 10);
+            }, 350);
+        }
+
+        // --- SISTEM ADMIN ---
+        function openAdminAuth() {
+            document.getElementById('input-admin-pass').value = "";
+            document.getElementById('admin-auth-overlay').style.display = 'flex';
+            setTimeout(() => document.getElementById('admin-auth-overlay').classList.add('show'), 10);
+        }
+        function closeAdminAuth() {
+            document.getElementById('admin-auth-overlay').classList.remove('show');
+            setTimeout(() => document.getElementById('admin-auth-overlay').style.display = 'none', 300);
+        }
+        
+        function prosesLoginAdmin() {
+            const pass = document.getElementById('input-admin-pass').value;
+            if(!pass) return showAlert("Admin", "Masukkan password!");
+
+            document.getElementById('input-admin-pass').value = "Loading...";
+            
+            fetch(gasUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: "login_admin", password: pass })
+            }).then(r => r.json()).then(res => {
+                if(res.status === "sukses_admin") {
+                    closeAdminAuth();
+                    adminDataMaster = res.data;
+                    document.getElementById('admin-panel').style.display = 'flex';
+                    setTimeout(() => document.getElementById('admin-panel').classList.add('show'), 10);
+                    renderAdminData();
+                } else {
+                    document.getElementById('input-admin-pass').value = "";
+                    showAlert("Gagal", res.pesan);
+                }
+            }).catch(e => {
+                document.getElementById('input-admin-pass').value = "";
+                showAlert("Error", "Gagal menghubungi server pusat.");
+            });
+        }
+
+        function closeAdminPanel() {
+            document.getElementById('admin-panel').classList.remove('show');
+            setTimeout(() => document.getElementById('admin-panel').style.display = 'none', 300);
+        }
+
+        function renderAdminData() {
+            const qPetugas = document.getElementById('search-petugas').value.toLowerCase();
+            const qBarang = document.getElementById('search-barang').value.toLowerCase();
+            const container = document.getElementById('admin-list-container');
+            
+            const filtered = adminDataMaster.filter(d => {
+                const p = (d.petugas || "").toLowerCase();
+                const b = (d.nama_barang || "").toLowerCase();
+                return p.includes(qPetugas) && b.includes(qBarang);
+            });
+
+            if(filtered.length === 0) {
+                container.innerHTML = `<div style="text-align:center; margin-top:40px; color:#666;">Tidak ada data ditemukan.</div>`;
+                return;
+            }
+
+            container.innerHTML = '';
+            filtered.forEach(item => {
+                container.innerHTML += `
+                    <div class="admin-card">
+                        <div class="admin-card-head">
+                            <b>📦 ${item.nama_barang}</b>
+                            <span>Rp ${item.harga}/${item.satuan}</span>
+                        </div>
+                        <div class="admin-card-body">
+                            <p>👤 ${item.petugas}</p>
+                            <p>🕒 ${item.tanggal} • ${item.jam}</p>
+                            <p>📍 ${item.lokasi}</p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // --- ALUR JEPRET & WATERMARK ---
         function openModal() {
             document.getElementById('modal-barang').value = document.getElementById('barang').value;
             document.getElementById('modal-harga').value = document.getElementById('harga').value;
             document.getElementById('modal-satuan').value = document.getElementById('satuan').value;
-            
-            const overlay = document.getElementById('ios-modal-overlay');
-            overlay.style.display = 'flex';
-            setTimeout(() => overlay.classList.add('show'), 10);
+            document.getElementById('ios-modal-overlay').style.display = 'flex';
+            setTimeout(() => document.getElementById('ios-modal-overlay').classList.add('show'), 10);
         }
 
         function closeModal() {
-            const overlay = document.getElementById('ios-modal-overlay');
-            overlay.classList.remove('show');
-            setTimeout(() => overlay.style.display = 'none', 300);
+            document.getElementById('ios-modal-overlay').classList.remove('show');
+            setTimeout(() => document.getElementById('ios-modal-overlay').style.display = 'none', 300);
         }
 
         function confirmModal() {
             const mNama = document.getElementById('modal-barang').value;
             const mHarga = document.getElementById('modal-harga').value;
             if(!mNama || !mHarga) return;
-            
             document.getElementById('barang').value = mNama;
             document.getElementById('harga').value = mHarga;
             document.getElementById('satuan').value = document.getElementById('modal-satuan').value;
@@ -553,6 +556,14 @@
         }
 
         function capture() {
+            // CEK NAMA PETUGAS DULU
+            let namaPetugas = localStorage.getItem("mhy_petugas");
+            if (!namaPetugas) {
+                document.getElementById('petugas-modal-overlay').style.display = 'flex';
+                setTimeout(() => document.getElementById('petugas-modal-overlay').classList.add('show'), 10);
+                return; // Berhenti dulu, tunggu dia ngisi form nama.
+            }
+
             const bNama = document.getElementById('barang').value;
             const bHarga = document.getElementById('harga').value;
             const bSatuan = document.getElementById('satuan').value || 'pcs';
@@ -580,12 +591,13 @@
             const timeStr = getYahYuDateTime();
             const idUnik = Date.now(); 
             
-            // Bikin Box Hitam
+            // Susunan Teks Watermark
             const lines = [
                 { text: bNama.toUpperCase(), font: "bold 58px sans-serif", color: "#ffffff", height: 60 },
                 { text: `Rp ${bHarga} / ${bSatuan}`, font: "bold 46px sans-serif", color: "#ffffff", height: 48 },
                 { text: bLokasi, font: "normal 32px sans-serif", color: "rgba(255, 255, 255, 0.9)", height: 36 },
-                { text: timeStr, font: "normal 28px sans-serif", color: "rgba(255, 255, 255, 0.8)", height: 32 }
+                { text: timeStr, font: "normal 28px sans-serif", color: "rgba(255, 255, 255, 0.8)", height: 32 },
+                { text: `Petugas Lapangan : ${namaPetugas}`, font: "normal 24px sans-serif", color: "rgba(255, 255, 255, 0.7)", height: 28 }
             ];
 
             let maxTextWidth = 0; let totalHeight = 0;
@@ -616,6 +628,7 @@
             const dataUrl = canvas.toDataURL('image/jpeg', 0.95); 
             preview.src = dataUrl; preview.style.display = 'block'; video.style.display = 'none';
 
+            // Simpan Ke HP (Indexed DB)
             if (db) {
                 const tx = db.transaction("surveys", "readwrite");
                 tx.objectStore("surveys").put({
@@ -636,17 +649,16 @@
                     action: "insert", id_unik: idUnik,
                     tanggal: `${days[now.getDay()]}, ${now.getDate().toString().padStart(2, '0')} ${months[now.getMonth()]} ${now.getFullYear()}`,
                     jam: now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0'),
-                    petugas: NAMA_PETUGAS_AKTIF, lokasi: bLokasi, nama_barang: bNama, harga: bHarga, satuan: bSatuan
+                    petugas: namaPetugas, lokasi: bLokasi, nama_barang: bNama, harga: bHarga, satuan: bSatuan
                 })
-            }).catch(e=>console.log("Offline mode"));
+            }).catch(e => console.log("Lagi mode offline/error jaringan"));
 
-            // Download
             const link = document.createElement('a');
             link.download = `Survei_${bNama.replace(/\s+/g, '_')}.jpg`; link.href = dataUrl; link.click();
             canvas.toBlob(blob => { imageBlob = new File([blob], "survey.jpg", {type:"image/jpeg"}); }, 'image/jpeg', 0.95);
 
             snapBtn.style.display = 'none'; document.getElementById('action-area').style.display = 'flex';
-            status.innerText = "Foto Tersimpan";
+            status.innerText = "Foto Tersimpan Otomatis";
         }
 
         async function shareToWA() {
@@ -661,23 +673,22 @@
             document.getElementById('barang').value = ""; document.getElementById('harga').value = ""; document.getElementById('satuan').value = "";
             preview.style.display = 'none'; video.style.display = 'block';
             snapBtn.style.display = 'block'; document.getElementById('action-area').style.display = 'none';
+            status.innerText = "Siap jepret berikutnya";
         }
 
-        // --- SISTEM RIWAYAT & HAPUS LOKAL ---
-        function openHistory() { document.getElementById('history-modal').classList.add('show'); document.getElementById('history-modal').style.display = 'flex'; loadHistoryList(); }
+        // --- SISTEM RIWAYAT LOKAL ---
+        function openHistory() { document.getElementById('history-modal').style.display = 'flex'; setTimeout(() => document.getElementById('history-modal').classList.add('show'), 10); loadHistoryList(); }
         function closeHistory() { document.getElementById('history-modal').classList.remove('show'); setTimeout(() => document.getElementById('history-modal').style.display = 'none', 300); }
 
         function loadHistoryList() {
             if (!db) return;
-            const req = db.transaction("surveys", "readonly").objectStore("surveys").getAll();
-            req.onsuccess = () => {
-                const list = req.result.reverse(); 
+            db.transaction("surveys", "readonly").objectStore("surveys").getAll().onsuccess = (e) => {
+                const list = e.target.result.reverse(); 
                 const container = document.getElementById('history-list'); container.innerHTML = '';
-                if(list.length === 0) return container.innerHTML = '<div style="text-align:center; margin-top:50px; color:#888;">Belum ada riwayat</div>';
+                if(list.length === 0) return container.innerHTML = '<div style="text-align:center; margin-top:50px; color:#888;">Belum ada riwayat surveimu</div>';
                 
                 list.forEach(item => {
-                    const umurDataMs = Date.now() - item.id;
-                    const isBisaDihapus = umurDataMs <= 120000; // 2 Menit
+                    const isBisaDihapus = (Date.now() - item.id) <= 120000; // 2 Menit
                     let btnHapus = isBisaDihapus ? `<button class="btn-item-danger" onclick="deleteFromDB(${item.id})">Hapus</button>` : `<span style="font-size:11px; color:#888;">Terkunci</span>`;
                     
                     container.innerHTML += `
@@ -689,15 +700,14 @@
             }
         }
 
+        // HAPUS LOKAL + SPREADSHEET (Maks 2 Menit)
         function deleteFromDB(id) {
-            if (!confirm("Hapus data dari Spreadsheet?")) return;
+            if (!confirm("Data yang salah ini akan dihapus dari Server Pusat juga. Lanjutkan?")) return;
             fetch(gasUrl, {
                 method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({ action: "delete", id_unik: id })
             }).then(() => {
-                const tx = db.transaction("surveys", "readwrite");
-                tx.objectStore("surveys").delete(id);
-                tx.oncomplete = () => loadHistoryList();
+                db.transaction("surveys", "readwrite").objectStore("surveys").delete(id).oncomplete = () => loadHistoryList();
             }).catch(() => alert("Gagal konek ke server."));
         }
 
@@ -715,16 +725,19 @@
         async function shareHistoryItem() {
             const res = await fetch(currentDetailItem.image); const blob = await res.blob();
             const file = new File([blob], `Survei_${currentDetailItem.nama}.jpg`, {type: 'image/jpeg'});
-            navigator.share({ files: [file], text: `${currentDetailItem.nama}\nRp ${currentDetailItem.harga}/${currentDetailItem.satuan}\n${currentDetailItem.waktu}`});
+            if(navigator.canShare) navigator.share({ files: [file], text: `${currentDetailItem.nama}\nRp ${currentDetailItem.harga}/${currentDetailItem.satuan}\n${currentDetailItem.waktu}`});
         }
 
-        // --- SISTEM REKAP ---
+        // --- SISTEM REKAP LOKAL ---
         function openRekap() {
             document.getElementById('rekap-modal').style.display = 'flex';
             setTimeout(() => document.getElementById('rekap-modal').classList.add('show'), 10);
+            
+            document.getElementById('nama-petugas-rekap').innerText = localStorage.getItem("mhy_petugas") || "Belum Diatur";
             const now = new Date();
             document.getElementById('rekap-tgl').innerText = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth()+1).toString().padStart(2, '0')}/${now.getFullYear()}`;
             
+            if (!db) return;
             db.transaction("surveys", "readonly").objectStore("surveys").getAll().onsuccess = (e) => {
                 const list = e.target.result; 
                 const tbody = document.getElementById('rekap-body'); tbody.innerHTML = '';
@@ -737,20 +750,36 @@
         function copyRekapWA() {
             db.transaction("surveys", "readonly").objectStore("surveys").getAll().onsuccess = (e) => {
                 const list = e.target.result; if (list.length === 0) return showAlert("Kosong", "Tidak ada data rekap.");
-                let text = `*HASIL SURVEI HARGA:*\nPetugas : ${NAMA_PETUGAS_AKTIF}\nTempat : ${list[0].lokasi || '-'}\nTgl : ${document.getElementById('rekap-tgl').innerText}\n—\n`;
+                let nm = localStorage.getItem("mhy_petugas") || "Petugas";
+                let text = `*HASIL SURVEI HARGA:*\nPetugas : ${nm}\nTempat : ${list[0].lokasi || '-'}\nTgl : ${document.getElementById('rekap-tgl').innerText}\n—\n`;
                 list.forEach((i, idx) => text += `${idx + 1}. ${i.nama} - Rp ${i.harga}/${i.satuan}\n`);
                 
-                if (navigator.clipboard) navigator.clipboard.writeText(text).then(()=>showAlert("Sukses", "Tinggal paste di WA!"));
+                if (navigator.clipboard) navigator.clipboard.writeText(text).then(()=>showAlert("Berhasil disalin", "Tinggal paste ke WA!"));
+                else {
+                    let ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+                    showAlert("Berhasil disalin", "Tinggal paste ke WA!");
+                }
             }
         }
+        
+        // HAPUS LOKAL SAJA (Tanpa ganggu pusat)
         function bersihkanSesi() {
-            if(!confirm("Yakin hapus data di HP? (Data Spreadsheet aman)")) return;
-            db.transaction("surveys", "readwrite").objectStore("surveys").clear().oncomplete = () => { closeRekap(); showAlert("Sukses", "Sesi bersih."); };
+            if(!confirm("Yakin mau hapus riwayat & rekap di HP ini? (Data di Spreadsheet PUSAT tetap aman)")) return;
+            db.transaction("surveys", "readwrite").objectStore("surveys").clear().oncomplete = () => { closeRekap(); showAlert("Sesi Direset", "Siap digunakan untuk minggu depan!"); };
         }
 
         // Alert Helpers
         function showAlert(t, m) { document.getElementById('alert-title').innerText = t; document.getElementById('alert-msg').innerText = m; document.getElementById('ios-alert').style.display = 'flex'; }
         function closeAlert() { document.getElementById('ios-alert').style.display = 'none'; }
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker offline jalan.'))
+                    .catch(err => console.log('Gagal SW: ', err));
+            });
+        }
+        window.onload = startApp;
     </script>
 </body>
 </html>
