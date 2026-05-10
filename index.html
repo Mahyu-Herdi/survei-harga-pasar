@@ -465,6 +465,11 @@
             setTimeout(() => document.getElementById('ios-confirm-overlay').style.display = 'none', 300);
         }
 
+        // FUNGSI UNTUK MENAMBAH TITIK PADA ANGKA (Dipakai di Admin)
+        function formatAngkaTitik(angka) {
+            if (!angka) return "0";
+            return angka.toString().replace(/[^0-9]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
 
         function formatRupiah(input) {
             let value = input.value.replace(/[^0-9]/g, '');
@@ -598,12 +603,12 @@
 
             container.innerHTML = '';
             filtered.forEach(item => {
-                // Hapus Data dengan parameter tombol (this) untuk animasi loading
+                // Di sini ditambahkan fungsi formatAngkaTitik() buat harganya
                 container.innerHTML += `
                     <div class="admin-card">
                         <div class="admin-card-head">
                             <b>📦 ${item.nama_barang}</b>
-                            <span>Rp ${item.harga}/${item.satuan}</span>
+                            <span>Rp ${formatAngkaTitik(item.harga)}/${item.satuan}</span>
                         </div>
                         <div class="admin-card-body">
                             <p>👤 ${item.petugas}</p>
