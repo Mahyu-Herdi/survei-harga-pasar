@@ -21,63 +21,48 @@
         * { box-sizing: border-box; }
 
         body, html {
-            margin: 0; padding: 0;
-            height: 100%; width: 100%;
+            margin: 0; padding: 0; height: 100%; width: 100%;
             background-color: #000; color: #fff;
             font-family: var(--font-main);
             overflow: hidden; display: flex; flex-direction: column;
         }
 
+        /* Tampilan Utama Kamera (Sembunyi dulu sebelum login) */
+        #main-app { display: none; width: 100%; height: 100%; flex-direction: column; }
+
         #viewport {
-            flex: 1; position: relative;
-            background: #111; display: flex;
+            flex: 1; position: relative; background: #111; display: flex;
             align-items: center; justify-content: center;
         }
         
         video { width: 100%; height: 100%; object-fit: cover; }
 
-        .btn-riwayat {
-            position: absolute; top: 20px; right: 20px; z-index: 15;
+        .btn-top {
+            position: absolute; top: 20px; z-index: 15;
             background: rgba(0,0,0,0.4); color: #fff; border: 1px solid var(--ios-border);
             padding: 8px 14px; border-radius: 16px; font-size: 14px; font-weight: 500;
-            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            cursor: pointer; transition: 0.2s;
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); cursor: pointer; transition: 0.2s;
         }
-        .btn-riwayat:active { transform: scale(0.95); }
-
-        .btn-rekap {
-            position: absolute; top: 20px; right: 105px; z-index: 15;
-            background: rgba(10, 132, 255, 0.3); color: #fff; border: 1px solid var(--ios-blue);
-            padding: 8px 14px; border-radius: 16px; font-size: 14px; font-weight: 500;
-            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            cursor: pointer; transition: 0.2s;
-        }
-        .btn-rekap:active { transform: scale(0.95); }
+        .btn-top:active { transform: scale(0.95); }
+        .btn-riwayat { right: 20px; }
+        .btn-rekap { right: 105px; background: rgba(10, 132, 255, 0.3); border-color: var(--ios-blue); }
 
         #photo-preview {
-            position: absolute;
-            width: auto; height: 100%;
-            aspect-ratio: 3 / 4;
-            object-fit: cover; display: none; z-index: 5;
+            position: absolute; width: auto; height: 100%;
+            aspect-ratio: 3 / 4; object-fit: cover; display: none; z-index: 5;
         }
 
         #ui-panel {
-            position: absolute;
-            bottom: 0; left: 0; width: 100%;
-            padding: 24px 20px 40px 20px;
-            background: var(--ios-glass);
-            backdrop-filter: blur(30px) saturate(150%);
-            -webkit-backdrop-filter: blur(30px) saturate(150%);
-            border-top: 1px solid var(--ios-border);
-            border-radius: 35px 35px 0 0;
-            z-index: 10;
-            box-shadow: 0 -15px 40px rgba(0,0,0,0.6);
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            padding: 24px 20px 40px 20px; background: var(--ios-glass);
+            backdrop-filter: blur(30px) saturate(150%); -webkit-backdrop-filter: blur(30px) saturate(150%);
+            border-top: 1px solid var(--ios-border); border-radius: 35px 35px 0 0;
+            z-index: 10; box-shadow: 0 -15px 40px rgba(0,0,0,0.6);
         }
 
         .status-pill {
             font-size: 12px; background: rgba(255,255,255,0.1);
-            padding: 6px 14px; border-radius: 20px;
-            display: inline-block; margin-bottom: 20px;
+            padding: 6px 14px; border-radius: 20px; display: inline-block; margin-bottom: 20px;
             color: rgba(255,255,255,0.8); font-weight: 500;
         }
 
@@ -87,8 +72,7 @@
         input {
             width: 100%; background: rgba(255,255,255,0.08);
             border: 1px solid var(--ios-border); border-radius: 16px;
-            padding: 16px; color: #fff; font-size: 16px;
-            outline: none; transition: 0.3s;
+            padding: 16px; color: #fff; font-size: 16px; outline: none; transition: 0.3s;
         }
         input::placeholder { color: rgba(255, 255, 255, 0.4); }
         input:focus { background: rgba(255,255,255,0.15); border-color: var(--ios-blue); }
@@ -97,8 +81,7 @@
 
         .btn {
             width: 100%; padding: 18px; border: none; border-radius: 18px;
-            font-size: 17px; font-weight: 600; cursor: pointer;
-            transition: transform 0.1s; text-align: center;
+            font-size: 17px; font-weight: 600; cursor: pointer; transition: transform 0.1s; text-align: center;
         }
         .btn:active { transform: scale(0.96); opacity: 0.8; }
         .btn-capture { background: #fff; color: #000; }
@@ -115,23 +98,22 @@
         .flash-anim { animation: flashEffect 0.3s ease-out; }
         @keyframes flashEffect { 0% { opacity: 0.8; } 100% { opacity: 0; } }
 
-        #ios-modal-overlay {
+        /* OVERLAYS & MODALS */
+        .overlay-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.4); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
             display: none; align-items: center; justify-content: center; z-index: 100;
             opacity: 0; transition: opacity 0.3s ease;
         }
-        #ios-modal-overlay.show { display: flex; opacity: 1; }
+        .overlay-screen.show { display: flex; opacity: 1; }
         
         .ios-modal {
             background: var(--ios-glass); border: 1px solid var(--ios-border);
             border-radius: 28px; padding: 24px; width: 85%; max-width: 350px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5); text-align: center;
             transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            text-align: center;
         }
-        #ios-modal-overlay.show .ios-modal { transform: scale(1); }
-        
+        .overlay-screen.show .ios-modal { transform: scale(1); }
         .ios-modal h3 { margin: 0 0 8px 0; font-size: 20px; font-weight: 600; }
         .ios-modal p { margin: 0 0 20px 0; font-size: 14px; color: rgba(255,255,255,0.7); }
         
@@ -144,55 +126,49 @@
         .btn-cancel { background: rgba(255,255,255,0.1); color: #fff; }
         .btn-confirm { background: var(--ios-blue); color: #fff; }
 
-        .history-overlay {
+        .slide-panel {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; z-index: 200; display: none; flex-direction: column;
             transform: translateX(100%); transition: transform 0.3s ease;
         }
-        .history-overlay.show { transform: translateX(0); }
+        .slide-panel.show { transform: translateX(0); }
         
-        .history-header {
+        .panel-header {
             display: flex; justify-content: space-between; align-items: center;
             padding: 20px; padding-top: 40px; background: var(--ios-glass);
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--ios-border);
         }
-        .history-header h3 { margin: 0; font-size: 18px; font-weight: 600; }
-        .history-header button {
+        .panel-header h3 { margin: 0; font-size: 18px; font-weight: 600; }
+        .panel-header button {
             background: transparent; border: none; color: var(--ios-blue);
             font-size: 16px; font-weight: 500; cursor: pointer;
         }
         
-        #history-list { flex: 1; overflow-y: auto; padding: 15px; background: #000; }
-        .history-item {
+        .list-container { flex: 1; overflow-y: auto; padding: 15px; background: #000; }
+        .list-item {
             background: rgba(255,255,255,0.05); border-radius: 16px; padding: 16px;
             margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.08);
             display: flex; justify-content: space-between; align-items: center;
         }
-        .history-item-info { flex: 1; }
-        .history-item-info h4 { margin: 0 0 6px 0; font-size: 16px; }
-        .history-item-info p { margin: 0; font-size: 12px; color: rgba(255,255,255,0.6); }
+        .list-item-info { flex: 1; }
+        .list-item-info h4 { margin: 0 0 6px 0; font-size: 16px; }
+        .list-item-info p { margin: 0; font-size: 12px; color: rgba(255,255,255,0.6); }
         
-        .history-item-actions { display: flex; gap: 8px; }
-        .history-item-btn {
+        .list-item-actions { display: flex; align-items: center; gap: 8px; }
+        .btn-item-normal {
             background: rgba(255,255,255,0.1); border: none; color: #fff;
             padding: 8px 16px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer;
-            transition: 0.2s;
         }
-        .history-item-btn:active { transform: scale(0.95); }
-        
-        .btn-delete-item {
+        .btn-item-danger {
             background: rgba(255, 69, 58, 0.15); border: 1px solid rgba(255, 69, 58, 0.3); color: var(--ios-red);
             padding: 8px 12px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer;
-            transition: 0.2s;
         }
-        .btn-delete-item:active { transform: scale(0.95); }
-        
+
         #detail-content { flex: 1; display: flex; flex-direction: column; background: #111; overflow: hidden; }
         #detail-img { flex: 1; width: 100%; object-fit: contain; }
         .detail-actions { padding: 20px; background: var(--ios-glass); border-top: 1px solid var(--ios-border); }
 
-        .rekap-container { flex: 1; overflow-y: auto; padding: 20px; background: #000; }
         .rekap-info { margin-bottom: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 16px; border: 1px solid var(--ios-border); }
         .rekap-info p { margin: 5px 0; font-size: 14px; color: #ddd; }
         .rekap-table { width: 100%; border-collapse: collapse; font-size: 14px; }
@@ -201,59 +177,117 @@
         .rekap-table td { color: #fff; }
 
         #ios-alert {
-            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3);
-            z-index: 10001; justify-content: center; align-items: center;
-            backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
-            opacity: 0; transition: opacity 0.2s ease;
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+            z-index: 10001; justify-content: center; align-items: center; backdrop-filter: blur(5px);
         }
-        #ios-alert.show { display: flex; opacity: 1; }
         .alert-box {
             background: rgba(40, 40, 40, 0.85); backdrop-filter: blur(25px);
-            border-radius: 14px; width: 270px; text-align: center; overflow: hidden;
-            transform: scale(0.9); transition: transform 0.2s cubic-bezier(0.17, 0.89, 0.32, 1.2);
-            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px; width: 270px; text-align: center; border: 1px solid rgba(255,255,255,0.1);
         }
-        #ios-alert.show .alert-box { transform: scale(1); }
         .alert-content { padding: 20px; }
         .alert-btn {
             width: 100%; padding: 14px; background: transparent; border: none;
             border-top: 1px solid rgba(255,255,255,0.1); color: var(--ios-blue);
-            font-size: 17px; font-weight: 600; cursor: pointer; transition: 0.1s;
+            font-size: 17px; font-weight: 600; cursor: pointer;
         }
-        .alert-btn:active { background: rgba(255,255,255,0.1); }
+
+        /* TAMPILAN LOGIN AWAL */
+        #login-screen {
+            position: fixed; inset: 0; background: #000; z-index: 9000;
+            display: flex; align-items: center; justify-content: center; flex-direction: column;
+            background-image: radial-gradient(circle at top, #111 0%, #000 100%);
+        }
+        .login-box {
+            background: var(--ios-glass); padding: 30px 20px; border-radius: 28px;
+            width: 85%; max-width: 350px; border: 1px solid var(--ios-border); text-align: center;
+        }
+        .login-box h2 { margin: 0 0 5px 0; font-size: 22px; }
+        .login-box p { color: #888; font-size: 14px; margin-bottom: 25px; }
+        .login-btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+
+        /* TAMPILAN DASHBOARD ADMIN */
+        #admin-panel {
+            display: none; position: fixed; inset: 0; background: #000; z-index: 5000;
+            flex-direction: column;
+        }
+        .admin-search-area { padding: 20px; background: var(--ios-glass); border-bottom: 1px solid var(--ios-border); }
+        .admin-card {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px; padding: 16px; margin-bottom: 12px;
+        }
+        .admin-card-head { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; }
+        .admin-card-head b { font-size: 16px; color: #fff; }
+        .admin-card-head span { color: var(--ios-green, #34c759); font-weight: bold; }
+        .admin-card-body p { margin: 4px 0; font-size: 13px; color: #aaa; display: flex; align-items: center; gap: 6px; }
     </style>
 </head>
 <body>
 
-    <div id="viewport">
-        <video id="cam" autoplay playsinline></video>
-        <img id="photo-preview">
-        <div id="flash"></div>
-        <button class="btn-rekap" onclick="openRekap()">Tabel Rekap</button>
-        <button class="btn-riwayat" onclick="openHistory()">Riwayat</button>
-    </div>
-
-    <div id="ui-panel">
-        <center><div class="status-pill" id="status">Menginisialisasi Kamera...</div></center>
-        
-        <div class="input-group">
-            <input type="text" id="lokasi" placeholder="Lokasi Survei (Otomatis/Manual)">
-            <input type="text" id="barang" placeholder="Nama Barang">
-            <div class="input-row">
-                <input type="text" inputmode="numeric" id="harga" placeholder="Harga (Tanpa Titik)" oninput="formatRupiah(this)">
-                <input type="text" id="satuan" placeholder="Satuan (kg/pcs)">
+    <!-- LAYAR LOGIN AWAL -->
+    <div id="login-screen">
+        <div class="login-box">
+            <h2>Survey Pasar</h2>
+            <p>Masukkan Nama atau Password</p>
+            <input type="text" id="login-input" placeholder="Nama / Password" style="text-align: center;">
+            
+            <div class="login-btn-group">
+                <button class="btn btn-capture" onclick="loginPetugas()">Mulai Survei</button>
+                <button class="btn btn-next" onclick="loginAdmin()">Login Admin</button>
             </div>
         </div>
+    </div>
 
-        <button class="btn btn-capture" id="snap-btn" onclick="capture()">Jepret Foto</button>
-
-        <div id="action-area">
-            <button class="btn btn-share" onclick="shareToWA()">Kirim ke WhatsApp</button>
-            <button class="btn btn-next" onclick="reset()">Lanjut Barang Baru</button>
+    <!-- TAMPILAN DASHBOARD ADMIN -->
+    <div id="admin-panel">
+        <div class="panel-header" style="padding-top: 40px;">
+            <h3>Data Survei Masuk</h3>
+            <button onclick="logoutApp()">Keluar</button>
+        </div>
+        <div class="admin-search-area">
+            <div class="input-group" style="margin-bottom:0;">
+                <input type="text" id="search-petugas" placeholder="🔍 Cari Nama Petugas..." onkeyup="renderAdminData()">
+                <input type="text" id="search-barang" placeholder="📦 Cari Nama Barang..." onkeyup="renderAdminData()">
+            </div>
+        </div>
+        <div class="list-container" id="admin-list-container">
+            <div style="text-align:center; margin-top:40px; color:#666;">Memuat data...</div>
         </div>
     </div>
 
-    <div id="ios-modal-overlay">
+    <!-- TAMPILAN APLIKASI PETUGAS (Kamera) -->
+    <div id="main-app">
+        <div id="viewport">
+            <video id="cam" autoplay playsinline></video>
+            <img id="photo-preview">
+            <div id="flash"></div>
+            <button class="btn-top btn-rekap" onclick="openRekap()">Tabel Rekap</button>
+            <button class="btn-top btn-riwayat" onclick="openHistory()">Riwayat</button>
+        </div>
+
+        <div id="ui-panel">
+            <center><div class="status-pill" id="status">Kamera Bersiap...</div></center>
+            
+            <div class="input-group">
+                <!-- Input nama petugas dihapus, diambil dari login -->
+                <input type="text" id="lokasi" placeholder="Lokasi Survei (Otomatis/Manual)">
+                <input type="text" id="barang" placeholder="Nama Barang">
+                <div class="input-row">
+                    <input type="text" inputmode="numeric" id="harga" placeholder="Harga (Tanpa Titik)" oninput="formatRupiah(this)">
+                    <input type="text" id="satuan" placeholder="Satuan (kg/pcs)">
+                </div>
+            </div>
+
+            <button class="btn btn-capture" id="snap-btn" onclick="capture()">Jepret Foto</button>
+
+            <div id="action-area">
+                <button class="btn btn-share" onclick="shareToWA()">Kirim ke WhatsApp</button>
+                <button class="btn btn-next" onclick="reset()">Lanjut Barang Baru</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PERINGATAN KOSONG -->
+    <div id="ios-modal-overlay" class="overlay-screen">
         <div class="ios-modal">
             <h3>Data Belum Lengkap</h3>
             <p>Isi barang & harganya dulu ya sebelum lanjut foto.</p>
@@ -271,16 +305,18 @@
         </div>
     </div>
 
-    <div id="history-modal" class="history-overlay">
-        <div class="history-header">
+    <!-- RIWAYAT PETUGAS -->
+    <div id="history-modal" class="slide-panel">
+        <div class="panel-header">
             <h3>Riwayat Survei</h3>
             <button onclick="closeHistory()">Selesai</button>
         </div>
-        <div id="history-list"></div>
+        <div class="list-container" id="history-list"></div>
     </div>
 
-    <div id="detail-modal" class="history-overlay" style="z-index: 201;">
-        <div class="history-header">
+    <!-- DETAIL FOTO PETUGAS -->
+    <div id="detail-modal" class="slide-panel" style="z-index: 201;">
+        <div class="panel-header">
             <button onclick="closeDetail()">◂ Kembali</button>
             <h3 id="detail-title">Detail Barang</h3>
             <div style="width: 60px;"></div> 
@@ -293,33 +329,29 @@
         </div>
     </div>
 
-    <div id="rekap-modal" class="history-overlay">
-        <div class="history-header">
+    <!-- REKAP PETUGAS -->
+    <div id="rekap-modal" class="slide-panel">
+        <div class="panel-header">
             <h3>Rekap Survei</h3>
             <button onclick="closeRekap()">Tutup</button>
         </div>
-        <div class="rekap-container">
+        <div class="list-container">
             <div class="rekap-info">
-                <p>Nama Petugas : <b id="nama-petugas-rekap">Mahyu Herdi</b></p>
+                <p>Nama Petugas : <b id="nama-petugas-rekap"></b></p>
                 <p>Tgl : <b id="rekap-tgl"></b></p>
             </div>
             <table class="rekap-table">
-                <thead>
-                    <tr>
-                        <th>Nama Barang</th>
-                        <th>Harga Survei</th>
-                        <th>Satuan</th>
-                    </tr>
-                </thead>
-                <tbody id="rekap-body">
-                    </tbody>
+                <thead><tr><th>Nama Barang</th><th>Harga</th><th>Satuan</th></tr></thead>
+                <tbody id="rekap-body"></tbody>
             </table>
         </div>
         <div class="detail-actions">
-            <button class="btn btn-share" onclick="copyRekapWA()" style="margin:0; background:#34C759;">📋 Copy Data</button>
+            <button class="btn btn-share" onclick="copyRekapWA()" style="margin:0; background:#34C759;">📋 Copy Data Rekap</button>
+            <button class="btn btn-next" onclick="bersihkanSesi()" style="border-color: rgba(255, 69, 58, 0.4); color: var(--ios-red);">🧹 Bersihkan Sesi (Mulai Baru)</button>
         </div>
     </div>
 
+    <!-- CUSTOM ALERT -->
     <div id="ios-alert">
         <div class="alert-box">
             <div class="alert-content">
@@ -333,10 +365,108 @@
     <canvas id="render-canvas"></canvas>
 
     <script>
-        // --- PENGATURAN PETUGAS ---
-        const NAMA_PETUGAS = "Mahyu Herdi";
-        document.getElementById('nama-petugas-rekap').innerText = NAMA_PETUGAS;
+        // --- GANTI URL WEB APP KAMU DI SINI ---
+        const gasUrl = "https://script.google.com/macros/s/AKfycbwYcFsxGsDrsx_D594hK7M_XOrwbCJbkPEiOjLiEFzC_7_G3cr3e1pUsI29Lb4P3eGGrQ/exec"; 
 
+        let NAMA_PETUGAS_AKTIF = "";
+        let db;
+        let adminDataMaster = []; // Tempat simpan data admin yg ditarik dr server
+
+        // Setup Database Lokal
+        const request = indexedDB.open("SurveyDB", 1);
+        request.onupgradeneeded = (e) => {
+            db = e.target.result;
+            db.createObjectStore("surveys", { keyPath: "id" });
+        };
+        request.onsuccess = (e) => { db = e.target.result; };
+
+        // --- SISTEM LOGIN ---
+        function loginPetugas() {
+            const inputVal = document.getElementById('login-input').value.trim();
+            if(!inputVal) {
+                showAlert("Perhatian", "Tolong isi nama lengkap kamu buat laporan.");
+                return;
+            }
+            
+            // Set nama petugas, hide login, show app
+            NAMA_PETUGAS_AKTIF = inputVal;
+            document.getElementById('nama-petugas-rekap').innerText = NAMA_PETUGAS_AKTIF;
+            
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('main-app').style.display = 'flex';
+            
+            startApp(); // Mulai nyalain kamera
+        }
+
+        function loginAdmin() {
+            const pass = document.getElementById('login-input').value;
+            if(!pass) return showAlert("Admin", "Masukkan password admin!");
+
+            document.getElementById('login-input').value = "Loading data...";
+            
+            fetch(gasUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: "login_admin", password: pass })
+            }).then(r => r.json()).then(res => {
+                document.getElementById('login-input').value = "";
+                if(res.status === "sukses_admin") {
+                    document.getElementById('login-screen').style.display = 'none';
+                    document.getElementById('admin-panel').style.display = 'flex';
+                    
+                    adminDataMaster = res.data;
+                    renderAdminData();
+                } else {
+                    showAlert("Gagal", res.pesan);
+                }
+            }).catch(e => {
+                document.getElementById('login-input').value = pass;
+                showAlert("Error", "Gagal menghubungi server. Pastikan internet aktif.");
+            });
+        }
+
+        function logoutApp() {
+            window.location.reload(); // Refresh balik ke layar login
+        }
+
+        // --- RENDER DASHBOARD ADMIN ---
+        function renderAdminData() {
+            const qPetugas = document.getElementById('search-petugas').value.toLowerCase();
+            const qBarang = document.getElementById('search-barang').value.toLowerCase();
+            const container = document.getElementById('admin-list-container');
+            
+            const filtered = adminDataMaster.filter(d => {
+                const p = (d.petugas || "").toLowerCase();
+                const b = (d.nama_barang || "").toLowerCase();
+                return p.includes(qPetugas) && b.includes(qBarang);
+            });
+
+            if(filtered.length === 0) {
+                container.innerHTML = `<div style="text-align:center; margin-top:40px; color:#666;">Tidak ada data ditemukan.</div>`;
+                return;
+            }
+
+            container.innerHTML = '';
+            filtered.forEach(item => {
+                container.innerHTML += `
+                    <div class="admin-card">
+                        <div class="admin-card-head">
+                            <b>📦 ${item.nama_barang}</b>
+                            <span>Rp ${item.harga}/${item.satuan}</span>
+                        </div>
+                        <div class="admin-card-body">
+                            <p>👤 ${item.petugas}</p>
+                            <p>🕒 ${item.tanggal} • ${item.jam}</p>
+                            <p>📍 ${item.lokasi}</p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // ==========================================
+        // KODE KAMERA DAN SISTEM SURVEI PETUGAS
+        // ==========================================
         const video = document.getElementById('cam');
         const canvas = document.getElementById('render-canvas');
         const status = document.getElementById('status');
@@ -344,30 +474,6 @@
         const snapBtn = document.getElementById('snap-btn');
         let imageBlob = null;
         let isCameraActive = false;
-
-        let db;
-        const request = indexedDB.open("SurveyDB", 1);
-        request.onupgradeneeded = (e) => {
-            db = e.target.result;
-            db.createObjectStore("surveys", { keyPath: "id" });
-        };
-        request.onsuccess = (e) => { db = e.target.result; };
-        request.onerror = (e) => { console.error("Database error: ", e.target.errorCode); };
-
-        function saveToDB(data) {
-            if (!db) return;
-            const tx = db.transaction("surveys", "readwrite");
-            tx.objectStore("surveys").put(data);
-        }
-
-        function deleteFromDB(id) {
-            if (!db) return;
-            if (!confirm("Yakin mau hapus data survei ini?")) return;
-            
-            const tx = db.transaction("surveys", "readwrite");
-            tx.objectStore("surveys").delete(id);
-            tx.oncomplete = () => { loadHistoryList(); };
-        }
 
         async function startApp() {
             try {
@@ -379,7 +485,6 @@
                 isCameraActive = true;
             } catch (e) {
                 status.innerText = "Kamera Ditolak/Mode Offline";
-                isCameraActive = false;
             }
 
             if (navigator.geolocation) {
@@ -409,7 +514,6 @@
             const now = new Date();
             const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
             const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-            
             const hours = now.getHours();
             let ket = "Malam";
             if (hours >= 5 && hours < 11) ket = "Pagi";
@@ -439,19 +543,11 @@
         function confirmModal() {
             const mNama = document.getElementById('modal-barang').value;
             const mHarga = document.getElementById('modal-harga').value;
+            if(!mNama || !mHarga) return;
             
-            if(!mNama || !mHarga) {
-                const modal = document.querySelector('.ios-modal');
-                modal.style.transform = 'scale(1) translateX(-5px)';
-                setTimeout(() => modal.style.transform = 'scale(1) translateX(5px)', 50);
-                setTimeout(() => modal.style.transform = 'scale(1) translateX(0)', 100);
-                return;
-            }
-
             document.getElementById('barang').value = mNama;
             document.getElementById('harga').value = mHarga;
             document.getElementById('satuan').value = document.getElementById('modal-satuan').value;
-            
             closeModal();
             setTimeout(() => capture(), 350); 
         }
@@ -468,34 +564,23 @@
             f.classList.add('flash-anim');
             setTimeout(() => f.classList.remove('flash-anim'), 300);
 
-            const targetW = 1200;
-            const targetH = 1600;
-            canvas.width = targetW;
-            canvas.height = targetH;
+            canvas.width = 1200; canvas.height = 1600;
             const ctx = canvas.getContext('2d');
 
             if(isCameraActive) {
-                const sW = video.videoWidth;
-                const sH = video.videoHeight;
+                const sW = video.videoWidth; const sH = video.videoHeight;
                 let cW, cH, sx, sy;
-                
-                if (sW / sH > 3 / 4) {
-                    cH = sH; cW = sH * (3 / 4); sx = (sW - cW) / 2; sy = 0;
-                } else {
-                    cW = sW; cH = sW / (3 / 4); sx = 0; sy = (sH - cH) / 2;
-                }
-                ctx.drawImage(video, sx, sy, cW, cH, 0, 0, targetW, targetH);
+                if (sW / sH > 3 / 4) { cH = sH; cW = sH * (3 / 4); sx = (sW - cW) / 2; sy = 0; } 
+                else { cW = sW; cH = sW / (3 / 4); sx = 0; sy = (sH - cH) / 2; }
+                ctx.drawImage(video, sx, sy, cW, cH, 0, 0, 1200, 1600);
             } else {
-                ctx.fillStyle = "#222"; ctx.fillRect(0,0, targetW, targetH);
+                ctx.fillStyle = "#222"; ctx.fillRect(0,0, 1200, 1600);
             }
 
             const timeStr = getYahYuDateTime();
+            const idUnik = Date.now(); 
             
-            const padding = 40;
-            const marginX = 40;
-            const marginY = 40;
-            const gap = 15; 
-            
+            // Bikin Box Hitam
             const lines = [
                 { text: bNama.toUpperCase(), font: "bold 58px sans-serif", color: "#ffffff", height: 60 },
                 { text: `Rp ${bHarga} / ${bSatuan}`, font: "bold 46px sans-serif", color: "#ffffff", height: 48 },
@@ -503,338 +588,169 @@
                 { text: timeStr, font: "normal 28px sans-serif", color: "rgba(255, 255, 255, 0.8)", height: 32 }
             ];
 
-            let maxTextWidth = 0;
-            let totalHeight = 0;
-
+            let maxTextWidth = 0; let totalHeight = 0;
             lines.forEach(line => {
                 ctx.font = line.font;
                 let w = ctx.measureText(line.text).width;
                 if (w > maxTextWidth) maxTextWidth = w;
-                totalHeight += line.height + gap;
+                totalHeight += line.height + 15;
             });
-            totalHeight -= gap; 
+            totalHeight -= 15; 
 
-            const boxW = Math.min(maxTextWidth + (padding * 2), targetW - (marginX * 2));
-            const boxH = totalHeight + (padding * 2);
-            const startX = marginX;
-            const startY = targetH - boxH - marginY;
+            const boxW = Math.min(maxTextWidth + 80, 1200 - 80);
+            const boxH = totalHeight + 80;
+            const startX = 40; const startY = 1600 - boxH - 40;
 
-            ctx.shadowColor = "rgba(0, 0, 0, 0.6)";
-            ctx.shadowBlur = 30;
-            ctx.shadowOffsetY = 15;
-            
             ctx.fillStyle = "rgba(20, 20, 24, 0.75)"; 
-            ctx.beginPath();
-            ctx.roundRect(startX, startY, boxW, boxH, 32); 
-            ctx.fill();
-
-            ctx.shadowColor = "transparent"; 
-            ctx.lineWidth = 2;
-            ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
-            ctx.stroke();
+            ctx.beginPath(); ctx.roundRect(startX, startY, boxW, boxH, 32); ctx.fill();
+            ctx.lineWidth = 2; ctx.strokeStyle = "rgba(255, 255, 255, 0.2)"; ctx.stroke();
 
             ctx.textBaseline = "top";
-            let currentY = startY + padding;
-
+            let currentY = startY + 40;
             lines.forEach(line => {
-                const textX = startX + padding;
-                ctx.font = line.font;
-                ctx.fillStyle = line.color;
-                ctx.fillText(line.text, textX, currentY);
-                currentY += line.height + gap;
+                ctx.font = line.font; ctx.fillStyle = line.color;
+                ctx.fillText(line.text, startX + 40, currentY);
+                currentY += line.height + 15;
             });
 
             const dataUrl = canvas.toDataURL('image/jpeg', 0.95); 
-            
-            preview.src = dataUrl;
-            preview.style.display = 'block';
-            video.style.display = 'none';
+            preview.src = dataUrl; preview.style.display = 'block'; video.style.display = 'none';
 
-            saveToDB({
-                id: Date.now(),
-                nama: bNama,
-                harga: bHarga,
-                satuan: bSatuan,
-                lokasi: bLokasi,
-                waktu: timeStr,
-                image: dataUrl
-            });
+            if (db) {
+                const tx = db.transaction("surveys", "readwrite");
+                tx.objectStore("surveys").put({
+                    id: idUnik, nama: bNama, harga: bHarga, satuan: bSatuan,
+                    lokasi: bLokasi, waktu: timeStr, image: dataUrl
+                });
+            }
 
-            // ==============================================================
-            // MENGIRIM DATA KE SPREADSHEET
-            // ==============================================================
+            // --- KIRIM KE SPREADSHEET ---
             const now = new Date();
             const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
             const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
             
-            const tglSpreadsheet = `${days[now.getDay()]}, ${now.getDate().toString().padStart(2, '0')} ${months[now.getMonth()]} ${now.getFullYear()}`;
-            const jamSpreadsheet = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
-
-            // --- PASTE URL WEB APP KAMU DI SINI ---
-            const gasUrl = "https://script.google.com/macros/s/AKfycbwYcFsxGsDrsx_D594hK7M_XOrwbCJbkPEiOjLiEFzC_7_G3cr3e1pUsI29Lb4P3eGGrQ/exec"; 
-
             fetch(gasUrl, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'text/plain;charset=utf-8',
-                },
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({
-                    tanggal: tglSpreadsheet,
-                    jam: jamSpreadsheet,
-                    petugas: NAMA_PETUGAS,
-                    lokasi: bLokasi,
-                    nama_barang: bNama,
-                    harga: bHarga,
-                    satuan: bSatuan
+                    action: "insert", id_unik: idUnik,
+                    tanggal: `${days[now.getDay()]}, ${now.getDate().toString().padStart(2, '0')} ${months[now.getMonth()]} ${now.getFullYear()}`,
+                    jam: now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0'),
+                    petugas: NAMA_PETUGAS_AKTIF, lokasi: bLokasi, nama_barang: bNama, harga: bHarga, satuan: bSatuan
                 })
-            }).then(res => res.json())
-              .then(res => console.log("Response dari GAS:", res))
-              .catch(err => console.log("Gagal kirim ke Sheet:", err));
-            // ==============================================================
+            }).catch(e=>console.log("Offline mode"));
 
+            // Download
             const link = document.createElement('a');
-            link.download = `Survei_${bNama.replace(/\s+/g, '_')}.jpg`;
-            link.href = dataUrl;
-            link.click();
-
+            link.download = `Survei_${bNama.replace(/\s+/g, '_')}.jpg`; link.href = dataUrl; link.click();
             canvas.toBlob(blob => { imageBlob = new File([blob], "survey.jpg", {type:"image/jpeg"}); }, 'image/jpeg', 0.95);
 
-            snapBtn.style.display = 'none';
-            document.getElementById('action-area').style.display = 'flex';
-            status.innerText = "Foto Tersimpan Otomatis";
+            snapBtn.style.display = 'none'; document.getElementById('action-area').style.display = 'flex';
+            status.innerText = "Foto Tersimpan";
         }
 
         async function shareToWA() {
             if (!imageBlob) return;
-            const bNama = document.getElementById('barang').value;
-            const bHarga = document.getElementById('harga').value;
-            const bSatuan = document.getElementById('satuan').value || 'pcs';
-            const bLokasi = document.getElementById('lokasi').value || '-';
-            const timeString = getYahYuDateTime();
-
-            const pesanText = `${bNama}\nRp ${bHarga} / ${bSatuan}\n${timeString}\n${bLokasi}`;
-
-            const data = {
-                files: [imageBlob],
-                title: 'Hasil Survei',
-                text: pesanText
-            };
-
+            const pesanText = `${document.getElementById('barang').value}\nRp ${document.getElementById('harga').value} / ${document.getElementById('satuan').value || 'pcs'}\n${getYahYuDateTime()}\n${document.getElementById('lokasi').value || '-'}`;
             if (navigator.canShare && navigator.canShare({ files: [imageBlob] })) {
-                try { await navigator.share(data); } catch (e) { console.log(e); }
-            } else {
-                alert("Browser belum support share langsung.");
-            }
+                try { await navigator.share({ files: [imageBlob], title: 'Hasil Survei', text: pesanText }); } catch(e){}
+            } else alert("Browser belum support share langsung.");
         }
 
         function reset() {
-            document.getElementById('barang').value = "";
-            document.getElementById('harga').value = "";
-            document.getElementById('satuan').value = "";
-            
-            preview.style.display = 'none';
-            video.style.display = 'block';
-            snapBtn.style.display = 'block';
-            document.getElementById('action-area').style.display = 'none';
-            status.innerText = "Siap jepret berikutnya";
+            document.getElementById('barang').value = ""; document.getElementById('harga').value = ""; document.getElementById('satuan').value = "";
+            preview.style.display = 'none'; video.style.display = 'block';
+            snapBtn.style.display = 'block'; document.getElementById('action-area').style.display = 'none';
         }
 
-        let currentDetailItem = null;
-
-        function openHistory() {
-            document.getElementById('history-modal').style.display = 'flex';
-            setTimeout(() => document.getElementById('history-modal').classList.add('show'), 10);
-            loadHistoryList();
-        }
-
-        function closeHistory() {
-            document.getElementById('history-modal').classList.remove('show');
-            setTimeout(() => document.getElementById('history-modal').style.display = 'none', 300);
-        }
+        // --- SISTEM RIWAYAT & HAPUS LOKAL ---
+        function openHistory() { document.getElementById('history-modal').classList.add('show'); document.getElementById('history-modal').style.display = 'flex'; loadHistoryList(); }
+        function closeHistory() { document.getElementById('history-modal').classList.remove('show'); setTimeout(() => document.getElementById('history-modal').style.display = 'none', 300); }
 
         function loadHistoryList() {
             if (!db) return;
-            const tx = db.transaction("surveys", "readonly");
-            const store = tx.objectStore("surveys");
-            const req = store.getAll();
-            
+            const req = db.transaction("surveys", "readonly").objectStore("surveys").getAll();
             req.onsuccess = () => {
                 const list = req.result.reverse(); 
-                const container = document.getElementById('history-list');
-                container.innerHTML = '';
-                
-                if(list.length === 0) {
-                    container.innerHTML = '<div style="text-align:center; margin-top:50px; color:rgba(255,255,255,0.4); font-size:14px;">Belum ada riwayat jepretan</div>';
-                    return;
-                }
+                const container = document.getElementById('history-list'); container.innerHTML = '';
+                if(list.length === 0) return container.innerHTML = '<div style="text-align:center; margin-top:50px; color:#888;">Belum ada riwayat</div>';
                 
                 list.forEach(item => {
-                    const div = document.createElement('div');
-                    div.className = 'history-item';
-                    div.innerHTML = `
-                        <div class="history-item-info">
-                            <h4>${item.nama}</h4>
-                            <p>${item.waktu}</p>
-                        </div>
-                        <div class="history-item-actions">
-                            <button class="btn-delete-item" onclick="deleteFromDB(${item.id})">Hapus</button>
-                            <button class="history-item-btn" onclick="openDetail(${item.id})">Lihat</button>
-                        </div>
-                    `;
-                    container.appendChild(div);
+                    const umurDataMs = Date.now() - item.id;
+                    const isBisaDihapus = umurDataMs <= 120000; // 2 Menit
+                    let btnHapus = isBisaDihapus ? `<button class="btn-item-danger" onclick="deleteFromDB(${item.id})">Hapus</button>` : `<span style="font-size:11px; color:#888;">Terkunci</span>`;
+                    
+                    container.innerHTML += `
+                        <div class="list-item">
+                            <div class="list-item-info"><h4>${item.nama}</h4><p>${item.waktu}</p></div>
+                            <div class="list-item-actions">${btnHapus}<button class="btn-item-normal" onclick="openDetail(${item.id})">Lihat</button></div>
+                        </div>`;
                 });
             }
         }
 
+        function deleteFromDB(id) {
+            if (!confirm("Hapus data dari Spreadsheet?")) return;
+            fetch(gasUrl, {
+                method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: "delete", id_unik: id })
+            }).then(() => {
+                const tx = db.transaction("surveys", "readwrite");
+                tx.objectStore("surveys").delete(id);
+                tx.oncomplete = () => loadHistoryList();
+            }).catch(() => alert("Gagal konek ke server."));
+        }
+
+        let currentDetailItem = null;
         function openDetail(id) {
-            const tx = db.transaction("surveys", "readonly");
-            const req = tx.objectStore("surveys").get(id);
-            req.onsuccess = () => {
-                currentDetailItem = req.result;
+            db.transaction("surveys", "readonly").objectStore("surveys").get(id).onsuccess = (e) => {
+                currentDetailItem = e.target.result;
                 document.getElementById('detail-img').src = currentDetailItem.image;
                 document.getElementById('detail-title').innerText = currentDetailItem.nama;
-                
                 document.getElementById('detail-modal').style.display = 'flex';
                 setTimeout(() => document.getElementById('detail-modal').classList.add('show'), 10);
             }
         }
-
-        function closeDetail() {
-            document.getElementById('detail-modal').classList.remove('show');
-            setTimeout(() => document.getElementById('detail-modal').style.display = 'none', 300);
-        }
-
+        function closeDetail() { document.getElementById('detail-modal').classList.remove('show'); setTimeout(() => document.getElementById('detail-modal').style.display = 'none', 300); }
         async function shareHistoryItem() {
-            if (!currentDetailItem) return;
-            
-            const res = await fetch(currentDetailItem.image);
-            const blob = await res.blob();
-            const file = new File([blob], `Survei_${currentDetailItem.nama.replace(/\s+/g, '_')}.jpg`, {type: 'image/jpeg'});
-
-            const pesanText = `${currentDetailItem.nama}\nRp ${currentDetailItem.harga} / ${currentDetailItem.satuan}\n${currentDetailItem.waktu}\n${currentDetailItem.lokasi}`;
-
-            const data = {
-                files: [file],
-                title: 'Hasil Survei',
-                text: pesanText
-            };
-
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                try { await navigator.share(data); } catch (e) { console.log(e); }
-            } else {
-                alert("Browser belum support share langsung.");
-            }
+            const res = await fetch(currentDetailItem.image); const blob = await res.blob();
+            const file = new File([blob], `Survei_${currentDetailItem.nama}.jpg`, {type: 'image/jpeg'});
+            navigator.share({ files: [file], text: `${currentDetailItem.nama}\nRp ${currentDetailItem.harga}/${currentDetailItem.satuan}\n${currentDetailItem.waktu}`});
         }
 
-        function showAlert(title, msg) {
-            document.getElementById('alert-title').innerText = title;
-            document.getElementById('alert-msg').innerText = msg;
-            const alertOverlay = document.getElementById('ios-alert');
-            alertOverlay.style.display = 'flex';
-            setTimeout(() => alertOverlay.classList.add('show'), 10);
-        }
-
-        function closeAlert() {
-            const alertOverlay = document.getElementById('ios-alert');
-            alertOverlay.classList.remove('show');
-            setTimeout(() => alertOverlay.style.display = 'none', 200);
-        }
-
+        // --- SISTEM REKAP ---
         function openRekap() {
             document.getElementById('rekap-modal').style.display = 'flex';
             setTimeout(() => document.getElementById('rekap-modal').classList.add('show'), 10);
-            
             const now = new Date();
-            const tgl = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth()+1).toString().padStart(2, '0')}/${now.getFullYear()}`;
-            document.getElementById('rekap-tgl').innerText = tgl;
-
-            if (!db) return;
-            const tx = db.transaction("surveys", "readonly");
-            const req = tx.objectStore("surveys").getAll();
+            document.getElementById('rekap-tgl').innerText = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth()+1).toString().padStart(2, '0')}/${now.getFullYear()}`;
             
-            req.onsuccess = () => {
-                const list = req.result; 
-                const tbody = document.getElementById('rekap-body');
-                tbody.innerHTML = '';
-                
-                if(list.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#888;">Belum ada data survei</td></tr>';
-                    return;
-                }
-                
-                list.forEach(item => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${item.nama}</td>
-                        <td>Rp ${item.harga}</td>
-                        <td>${item.satuan}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
+            db.transaction("surveys", "readonly").objectStore("surveys").getAll().onsuccess = (e) => {
+                const list = e.target.result; 
+                const tbody = document.getElementById('rekap-body'); tbody.innerHTML = '';
+                if(list.length === 0) return tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#888;">Kosong</td></tr>';
+                list.forEach(item => tbody.innerHTML += `<tr><td>${item.nama}</td><td>Rp ${item.harga}</td><td>${item.satuan}</td></tr>`);
             }
         }
-
-        function closeRekap() {
-            document.getElementById('rekap-modal').classList.remove('show');
-            setTimeout(() => document.getElementById('rekap-modal').style.display = 'none', 300);
-        }
-
+        function closeRekap() { document.getElementById('rekap-modal').classList.remove('show'); setTimeout(() => document.getElementById('rekap-modal').style.display = 'none', 300); }
+        
         function copyRekapWA() {
-            if (!db) return;
-            const tx = db.transaction("surveys", "readonly");
-            const req = tx.objectStore("surveys").getAll();
-            
-            req.onsuccess = () => {
-                const list = req.result;
-                if (list.length === 0) {
-                    showAlert("Kosong", "Belum ada data untuk direkap.");
-                    return;
-                }
-
-                const tgl = document.getElementById('rekap-tgl').innerText;
-                let tempat = list[0].lokasi || document.getElementById('lokasi').value || "(sebutkan nama pasar)";
-
-                let text = "*HASIL CEK HARGA BAHAN BAKU :*\n";
-                text += `Nama Petugas : ${NAMA_PETUGAS}\n`;
-                text += `Tempat.      : ${tempat}\n`;
-                text += `Tgl.         : ${tgl}\n`;
-                text += "——————————————————————\n";
-
-                list.forEach((item, index) => {
-                    text += `${index + 1}. ${item.nama} - Rp ${item.harga} / ${item.satuan}\n`;
-                });
-
-                if (navigator.clipboard && window.isSecureContext) {
-                    navigator.clipboard.writeText(text).then(() => {
-                        showAlert("Berhasil disalin", "Tinggal paste ke WA!");
-                    }).catch(err => {
-                        showAlert("Gagal", "Gagal copy: " + err);
-                    });
-                } else {
-                    let textArea = document.createElement("textarea");
-                    textArea.value = text;
-                    document.body.appendChild(textArea);
-                    textArea.select();
-                    try {
-                        document.execCommand('copy');
-                        showAlert("Berhasil disalin", "Tinggal paste ke WA!");
-                    } catch (err) {
-                        showAlert("Gagal", "Oops, gagal copy. Coba lagi.");
-                    }
-                    document.body.removeChild(textArea);
-                }
+            db.transaction("surveys", "readonly").objectStore("surveys").getAll().onsuccess = (e) => {
+                const list = e.target.result; if (list.length === 0) return showAlert("Kosong", "Tidak ada data rekap.");
+                let text = `*HASIL SURVEI HARGA:*\nPetugas : ${NAMA_PETUGAS_AKTIF}\nTempat : ${list[0].lokasi || '-'}\nTgl : ${document.getElementById('rekap-tgl').innerText}\n—\n`;
+                list.forEach((i, idx) => text += `${idx + 1}. ${i.nama} - Rp ${i.harga}/${i.satuan}\n`);
+                
+                if (navigator.clipboard) navigator.clipboard.writeText(text).then(()=>showAlert("Sukses", "Tinggal paste di WA!"));
             }
         }
-
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('Service Worker berhasil didaftarkan! Mode offline siap.'))
-                    .catch(err => console.log('Gagal daftar Service Worker: ', err));
-            });
+        function bersihkanSesi() {
+            if(!confirm("Yakin hapus data di HP? (Data Spreadsheet aman)")) return;
+            db.transaction("surveys", "readwrite").objectStore("surveys").clear().oncomplete = () => { closeRekap(); showAlert("Sukses", "Sesi bersih."); };
         }
 
-        window.onload = startApp;
+        // Alert Helpers
+        function showAlert(t, m) { document.getElementById('alert-title').innerText = t; document.getElementById('alert-msg').innerText = m; document.getElementById('ios-alert').style.display = 'flex'; }
+        function closeAlert() { document.getElementById('ios-alert').style.display = 'none'; }
     </script>
 </body>
 </html>
