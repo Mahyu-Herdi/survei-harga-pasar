@@ -121,6 +121,7 @@
         .btn-modal:active { transform: scale(0.95); }
         .btn-cancel { background: rgba(255,255,255,0.1); color: #fff; }
         .btn-confirm { background: var(--ios-blue); color: #fff; }
+        .btn-modal:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
         /* SLIDE PANELS (Riwayat, Rekap, Admin Panel) */
         .slide-panel {
@@ -155,12 +156,13 @@
         .list-item-actions { display: flex; align-items: center; gap: 8px; }
         .btn-item-normal {
             background: rgba(255,255,255,0.1); border: none; color: #fff;
-            padding: 8px 16px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer;
+            padding: 8px 16px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s;
         }
         .btn-item-danger {
             background: rgba(255, 69, 58, 0.15); border: 1px solid rgba(255, 69, 58, 0.3); color: var(--ios-red);
-            padding: 8px 12px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer;
+            padding: 8px 12px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s;
         }
+        .btn-item-danger:disabled { opacity: 0.5; cursor: not-allowed; }
 
         #detail-content { flex: 1; display: flex; flex-direction: column; background: #111; overflow: hidden; }
         #detail-img { flex: 1; width: 100%; object-fit: contain; }
@@ -248,7 +250,7 @@
             <h3>Siapa Namamu?</h3>
             <p>Isi nama lengkap untuk pendataan laporan.</p>
             <input type="text" id="input-petugas-name" placeholder="Nama Lengkap" style="margin-bottom: 20px; text-align: center;">
-            <button class="btn btn-capture" onclick="savePetugasName()">Simpan & Lanjut</button>
+            <button class="btn btn-capture" onclick="savePetugasName()">Simpan</button>
         </div>
     </div>
 
@@ -284,7 +286,7 @@
         </div>
     </div>
 
-    <!-- MODAL 4: KONFIRMASI UNIVERSAL (PENGGANTI CONFIRM BAWAAN BROWSER) -->
+    <!-- MODAL 4: KONFIRMASI UNIVERSAL -->
     <div id="ios-confirm-overlay" class="overlay-screen" style="z-index: 10002;">
         <div class="ios-modal">
             <h3 id="confirm-title">Peringatan</h3>
@@ -380,7 +382,7 @@
         // =========================================================
         // URL GOOGLE APPS SCRIPT
         // =========================================================
-        const gasUrl = "https://script.google.com/macros/s/AKfycbwYcFsxGsDrsx_D594hK7M_XOrwbCJbkPEiOjLiEFzC_7_G3cr3e1pUsI29Lb4P3eGGrQ/exec"; 
+        const gasUrl = "https://script.google.com/macros/s/AKfycbzV_xTp7D7w1eMGmIWw7RmTbvWf5D5p3oKwtsmp50W--70iXvCWD1Whd3UHn4DE-jVwMA/exec"; 
 
         let db;
         let adminDataMaster = []; 
@@ -492,7 +494,7 @@
             document.getElementById('petugas-modal-overlay').classList.remove('show');
             setTimeout(() => {
                 document.getElementById('petugas-modal-overlay').style.display = 'none';
-                capture(); // Lanjut jepret otomatis
+                // Gak ada jepret otomatis lagi di sini, kembali ke layar kamera biasa.
             }, 300);
         }
 
@@ -508,13 +510,10 @@
 
         // --- SISTEM ADMIN DENGAN AUTO LOGIN LOKAL---
         function cekAdminAuth() {
-            // Cek apakah sandi admin sudah tersimpan di browser
             const savedPass = localStorage.getItem('mhy_admin_pass');
             if (savedPass) {
-                // Langsung proses login background
                 tarikDataAdmin(savedPass);
             } else {
-                // Munculin form sandi
                 document.getElementById('input-admin-pass').value = "";
                 document.getElementById('admin-auth-overlay').style.display = 'flex';
                 setTimeout(() => document.getElementById('admin-auth-overlay').classList.add('show'), 10);
@@ -530,14 +529,13 @@
         function prosesLoginAdmin() {
             const pass = document.getElementById('input-admin-pass').value;
             if(!pass) return showAlert("Admin", "Masukkan password!");
-            tarikDataAdmin(pass, true); // true = dari form input manual
+            tarikDataAdmin(pass, true);
         }
 
         function tarikDataAdmin(pass, isManual = false) {
             if (isManual) {
                 document.getElementById('btn-login-admin').innerText = "Mengecek...";
             } else {
-                // Tampilkan panel admin langsung dengan status loading
                 document.getElementById('admin-panel').style.display = 'flex';
                 setTimeout(() => document.getElementById('admin-panel').classList.add('show'), 10);
                 document.getElementById('admin-loading-text').innerText = "Sedang menarik data dari Server...";
@@ -550,11 +548,8 @@
                 body: JSON.stringify({ action: "login_admin", password: pass })
             }).then(r => r.json()).then(res => {
                 if(res.status === "sukses_admin") {
-                    // Simpan akses
                     localStorage.setItem('mhy_admin_pass', pass);
-                    
                     if (isManual) closeAdminAuth();
-                    
                     adminDataMaster = res.data;
                     document.getElementById('admin-panel').style.display = 'flex';
                     setTimeout(() => document.getElementById('admin-panel').classList.add('show'), 10);
@@ -564,7 +559,6 @@
                         document.getElementById('btn-login-admin').innerText = "Login";
                         showAlert("Gagal", res.pesan);
                     } else {
-                        // Kalau auto-login gagal (pass salah diganti), hapus sesi
                         logoutAdmin();
                         showAlert("Sesi Berakhir", "Password admin telah diubah, silakan login ulang.");
                     }
@@ -604,7 +598,7 @@
 
             container.innerHTML = '';
             filtered.forEach(item => {
-                // Tombol Hapus khusus Admin (Hapus permanen tanpa batasan waktu)
+                // Hapus Data dengan parameter tombol (this) untuk animasi loading
                 container.innerHTML += `
                     <div class="admin-card">
                         <div class="admin-card-head">
@@ -617,30 +611,43 @@
                             <p>📍 ${item.lokasi}</p>
                         </div>
                         <div style="margin-top:12px; text-align:right; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;">
-                            <button onclick="hapusDataGlobal(${item.id_unik})" style="background:rgba(255,69,58,0.15); color:var(--ios-red); border:1px solid rgba(255,69,58,0.3); padding:8px 16px; border-radius:10px; font-size:13px; font-weight:bold; cursor:pointer;">Hapus Data</button>
+                            <button onclick="hapusDataGlobal(${item.id_unik}, this)" style="background:rgba(255,69,58,0.15); color:var(--ios-red); border:1px solid rgba(255,69,58,0.3); padding:8px 16px; border-radius:10px; font-size:13px; font-weight:bold; cursor:pointer; transition:0.2s;">Hapus Data</button>
                         </div>
                     </div>
                 `;
             });
         }
 
-        // Hapus Data dari Panel Admin
-        function hapusDataGlobal(id_unik) {
+        // Hapus Data dari Panel Admin (Pake Loading)
+        function hapusDataGlobal(id_unik, btnElement) {
             showConfirm("Hapus Permanen", "Data ini akan dihapus dari Server Spreadsheet secara permanen. Yakin?", () => {
-                showAlert("Memproses...", "Sedang menghapus data dari pusat.");
+                const originalText = btnElement.innerText;
+                btnElement.innerText = "Menghapus... ⏳";
+                btnElement.disabled = true;
+                btnElement.style.opacity = "0.6";
+                btnElement.style.cursor = "not-allowed";
+
                 fetch(gasUrl, {
                     method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({ action: "delete", id_unik: id_unik })
                 }).then(r => r.json()).then(res => {
                     if(res.status === "sukses_delete") {
-                        // Hilangkan dari array master
                         adminDataMaster = adminDataMaster.filter(d => d.id_unik != id_unik);
-                        renderAdminData(); // Refresh UI
-                        showAlert("Berhasil", "Data telah dihapus.");
+                        renderAdminData(); 
                     } else {
+                        btnElement.innerText = originalText;
+                        btnElement.disabled = false;
+                        btnElement.style.opacity = "1";
+                        btnElement.style.cursor = "pointer";
                         showAlert("Gagal", "Data tidak ditemukan atau error.");
                     }
-                }).catch(() => showAlert("Error", "Gagal menghapus ke server."));
+                }).catch(() => {
+                    btnElement.innerText = originalText;
+                    btnElement.disabled = false;
+                    btnElement.style.opacity = "1";
+                    btnElement.style.cursor = "pointer";
+                    showAlert("Error", "Gagal menghapus ke server.");
+                });
             });
         }
 
@@ -670,12 +677,11 @@
         }
 
         function capture() {
-            // CEK NAMA PETUGAS DULU
             let namaPetugas = localStorage.getItem("mhy_petugas");
             if (!namaPetugas) {
                 document.getElementById('petugas-modal-overlay').style.display = 'flex';
                 setTimeout(() => document.getElementById('petugas-modal-overlay').classList.add('show'), 10);
-                return; // Berhenti dulu, tunggu dia ngisi form nama.
+                return; 
             }
 
             const bNama = document.getElementById('barang').value;
@@ -705,7 +711,6 @@
             const timeStr = getYahYuDateTime();
             const idUnik = Date.now(); 
             
-            // Susunan Teks Watermark
             const lines = [
                 { text: bNama.toUpperCase(), font: "bold 58px sans-serif", color: "#ffffff", height: 60 },
                 { text: `Rp ${bHarga} / ${bSatuan}`, font: "bold 46px sans-serif", color: "#ffffff", height: 48 },
@@ -742,7 +747,6 @@
             const dataUrl = canvas.toDataURL('image/jpeg', 0.95); 
             preview.src = dataUrl; preview.style.display = 'block'; video.style.display = 'none';
 
-            // Simpan Ke HP (Indexed DB)
             if (db) {
                 const tx = db.transaction("surveys", "readwrite");
                 tx.objectStore("surveys").put({
@@ -751,7 +755,6 @@
                 });
             }
 
-            // --- KIRIM KE SPREADSHEET ---
             const now = new Date();
             const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
             const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
@@ -803,7 +806,8 @@
                 
                 list.forEach(item => {
                     const isBisaDihapus = (Date.now() - item.id) <= 120000; // 2 Menit
-                    let btnHapus = isBisaDihapus ? `<button class="btn-item-danger" onclick="deleteFromDB(${item.id})">Hapus</button>` : `<span style="font-size:11px; color:#888;">Terkunci</span>`;
+                    // Pass element tombol (this) untuk efek loading
+                    let btnHapus = isBisaDihapus ? `<button class="btn-item-danger" onclick="deleteFromDB(${item.id}, this)">Hapus</button>` : `<span style="font-size:11px; color:#888;">Terkunci</span>`;
                     
                     container.innerHTML += `
                         <div class="list-item">
@@ -814,15 +818,23 @@
             }
         }
 
-        // HAPUS LOKAL + SPREADSHEET (Maks 2 Menit)
-        function deleteFromDB(id) {
+        // HAPUS LOKAL + SPREADSHEET (Maks 2 Menit - Pake Loading)
+        function deleteFromDB(id, btnElement) {
             showConfirm("Hapus Laporan", "Yakin hapus data ini? Kalau terhapus, data di pusat juga hilang.", () => {
+                const originalText = btnElement.innerText;
+                btnElement.innerText = "⏳";
+                btnElement.disabled = true;
+
                 fetch(gasUrl, {
                     method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({ action: "delete", id_unik: id })
                 }).then(() => {
                     db.transaction("surveys", "readwrite").objectStore("surveys").delete(id).oncomplete = () => loadHistoryList();
-                }).catch(() => showAlert("Error", "Gagal konek ke server."));
+                }).catch(() => {
+                    btnElement.innerText = originalText;
+                    btnElement.disabled = false;
+                    showAlert("Error", "Gagal konek ke server.");
+                });
             });
         }
 
@@ -877,7 +889,6 @@
             }
         }
         
-        // HAPUS LOKAL SAJA (Tanpa ganggu pusat)
         function bersihkanSesi() {
             showConfirm("Sesi Baru", "Yakin hapus riwayat & rekap di HP ini? Data di Spreadsheet Pusat tetap aman.", () => {
                 db.transaction("surveys", "readwrite").objectStore("surveys").clear().oncomplete = () => { 
