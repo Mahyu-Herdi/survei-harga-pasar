@@ -98,7 +98,7 @@
         .overlay-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.4); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            display: none; align-items: center; justify-content: center; z-index: 1000;
+            display: none; align-items: center; justify-content: center; z-index: 10000;
             opacity: 0; transition: opacity 0.3s ease;
         }
         .overlay-screen.show { display: flex; opacity: 1; }
@@ -125,7 +125,7 @@
         /* SLIDE PANELS (Riwayat, Rekap, Admin Panel) */
         .slide-panel {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 200; display: none; flex-direction: column;
+            background: #000; z-index: 5000; display: none; flex-direction: column;
             transform: translateX(100%); transition: transform 0.3s ease;
         }
         .slide-panel.show { transform: translateX(0); }
@@ -174,7 +174,7 @@
         .rekap-table td { color: #fff; }
 
         /* TAMPILAN DASHBOARD ADMIN */
-        #admin-panel { z-index: 5000; }
+        #admin-panel { z-index: 6000; }
         .admin-search-area { padding: 20px; background: var(--ios-glass); border-bottom: 1px solid var(--ios-border); }
         .admin-card {
             background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
@@ -185,21 +185,26 @@
         .admin-card-head span { color: var(--ios-green); font-weight: bold; }
         .admin-card-body p { margin: 4px 0; font-size: 13px; color: #aaa; display: flex; align-items: center; gap: 6px; }
 
-        /* ALERT SIMPLE */
+        /* ALERT SIMPLE (Notif Biasa) */
         #ios-alert {
             display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4);
-            z-index: 10001; justify-content: center; align-items: center; backdrop-filter: blur(5px);
+            z-index: 10005; justify-content: center; align-items: center; backdrop-filter: blur(5px);
+            opacity: 0; transition: opacity 0.2s ease;
         }
+        #ios-alert.show { display: flex; opacity: 1; }
         .alert-box {
             background: rgba(40, 40, 40, 0.85); backdrop-filter: blur(25px);
             border-radius: 14px; width: 270px; text-align: center; border: 1px solid rgba(255,255,255,0.1);
+            transform: scale(0.9); transition: transform 0.2s cubic-bezier(0.17, 0.89, 0.32, 1.2);
         }
+        #ios-alert.show .alert-box { transform: scale(1); }
         .alert-content { padding: 20px; }
         .alert-btn {
             width: 100%; padding: 14px; background: transparent; border: none;
             border-top: 1px solid rgba(255,255,255,0.1); color: var(--ios-blue);
             font-size: 17px; font-weight: 600; cursor: pointer;
         }
+
     </style>
 </head>
 <body>
@@ -211,7 +216,7 @@
         <div id="flash"></div>
         
         <!-- Navigasi Atas -->
-        <button class="btn-top btn-admin" onclick="openAdminAuth()">📊</button>
+        <button class="btn-top btn-admin" onclick="cekAdminAuth()">📊</button>
         <button class="btn-top btn-rekap" onclick="openRekap()">Tabel Rekap</button>
         <button class="btn-top btn-riwayat" onclick="openHistory()">Riwayat</button>
     </div>
@@ -237,11 +242,11 @@
         </div>
     </div>
 
-    <!-- MODAL 1: SET NAMA PETUGAS (MUNCUL SEKALI AJA) -->
+    <!-- MODAL 1: SET NAMA PETUGAS -->
     <div id="petugas-modal-overlay" class="overlay-screen">
         <div class="ios-modal">
             <h3>Siapa Namamu?</h3>
-            <p>Isi nama lengkap untuk pendataan. Ini cuma diminta sekali kok.</p>
+            <p>Isi nama lengkap untuk pendataan laporan.</p>
             <input type="text" id="input-petugas-name" placeholder="Nama Lengkap" style="margin-bottom: 20px; text-align: center;">
             <button class="btn btn-capture" onclick="savePetugasName()">Simpan & Lanjut</button>
         </div>
@@ -251,16 +256,16 @@
     <div id="admin-auth-overlay" class="overlay-screen">
         <div class="ios-modal">
             <h3>Login Admin</h3>
-            <p>Masukkan password untuk melihat seluruh data pusat.</p>
+            <p>Masukkan password untuk melihat data Global.</p>
             <input type="password" id="input-admin-pass" placeholder="Password" style="margin-bottom: 20px; text-align: center;">
             <div class="modal-actions">
                 <button class="btn-modal btn-cancel" onclick="closeAdminAuth()">Batal</button>
-                <button class="btn-modal btn-confirm" onclick="prosesLoginAdmin()">Login</button>
+                <button class="btn-modal btn-confirm" id="btn-login-admin" onclick="prosesLoginAdmin()">Login</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL 3: PERINGATAN INPUT KOSONG -->
+    <!-- MODAL 3: PERINGATAN INPUT KOSONG (Jepret) -->
     <div id="ios-modal-overlay" class="overlay-screen">
         <div class="ios-modal">
             <h3>Data Belum Lengkap</h3>
@@ -279,11 +284,26 @@
         </div>
     </div>
 
+    <!-- MODAL 4: KONFIRMASI UNIVERSAL (PENGGANTI CONFIRM BAWAAN BROWSER) -->
+    <div id="ios-confirm-overlay" class="overlay-screen" style="z-index: 10002;">
+        <div class="ios-modal">
+            <h3 id="confirm-title">Peringatan</h3>
+            <p id="confirm-msg">Apakah Anda yakin?</p>
+            <div class="modal-actions">
+                <button class="btn-modal btn-cancel" onclick="closeConfirm()">Batal</button>
+                <button class="btn-modal btn-confirm" id="confirm-btn-ok" style="background: var(--ios-red);">Yakin</button>
+            </div>
+        </div>
+    </div>
+
     <!-- DASHBOARD ADMIN (GLOBAL DATA) -->
     <div id="admin-panel" class="slide-panel">
         <div class="panel-header">
             <h3>Data Survei Global</h3>
-            <button onclick="closeAdminPanel()">Tutup</button>
+            <div>
+                <button onclick="logoutAdmin()" style="color: var(--ios-red); margin-right: 15px; font-size: 14px;">Logout</button>
+                <button onclick="closeAdminPanel()">Tutup</button>
+            </div>
         </div>
         <div class="admin-search-area">
             <div class="input-group" style="margin-bottom:0;">
@@ -292,7 +312,7 @@
             </div>
         </div>
         <div class="list-container" id="admin-list-container">
-            <div style="text-align:center; margin-top:40px; color:#666;">Memuat data...</div>
+            <div style="text-align:center; margin-top:40px; color:#666;" id="admin-loading-text">Sedang memuat data dari server...</div>
         </div>
     </div>
 
@@ -306,7 +326,7 @@
     </div>
 
     <!-- DETAIL FOTO -->
-    <div id="detail-modal" class="slide-panel" style="z-index: 201;">
+    <div id="detail-modal" class="slide-panel" style="z-index: 5100;">
         <div class="panel-header">
             <button onclick="closeDetail()">◂ Kembali</button>
             <h3 id="detail-title">Detail Barang</h3>
@@ -343,7 +363,7 @@
         </div>
     </div>
 
-    <!-- CUSTOM ALERT -->
+    <!-- CUSTOM ALERT BIASA -->
     <div id="ios-alert">
         <div class="alert-box">
             <div class="alert-content">
@@ -358,7 +378,7 @@
 
     <script>
         // =========================================================
-        // URL GOOGLE APPS SCRIPT (JANGAN LUPA DIGANTI)
+        // URL GOOGLE APPS SCRIPT
         // =========================================================
         const gasUrl = "https://script.google.com/macros/s/AKfycbwYcFsxGsDrsx_D594hK7M_XOrwbCJbkPEiOjLiEFzC_7_G3cr3e1pUsI29Lb4P3eGGrQ/exec"; 
 
@@ -412,6 +432,38 @@
             }
         }
 
+        // --- SISTEM CUSTOM ALERT & CONFIRM ---
+        function showAlert(t, m) { 
+            document.getElementById('alert-title').innerText = t; 
+            document.getElementById('alert-msg').innerText = m; 
+            document.getElementById('ios-alert').style.display = 'flex'; 
+            setTimeout(() => document.getElementById('ios-alert').classList.add('show'), 10);
+        }
+        function closeAlert() { 
+            document.getElementById('ios-alert').classList.remove('show'); 
+            setTimeout(() => document.getElementById('ios-alert').style.display = 'none', 200); 
+        }
+
+        let confirmCallback = null;
+        function showConfirm(title, msg, callback) {
+            document.getElementById('confirm-title').innerText = title;
+            document.getElementById('confirm-msg').innerText = msg;
+            confirmCallback = callback;
+            
+            document.getElementById('ios-confirm-overlay').style.display = 'flex';
+            setTimeout(() => document.getElementById('ios-confirm-overlay').classList.add('show'), 10);
+            
+            document.getElementById('confirm-btn-ok').onclick = function() {
+                closeConfirm();
+                if(confirmCallback) confirmCallback();
+            };
+        }
+        function closeConfirm() {
+            document.getElementById('ios-confirm-overlay').classList.remove('show');
+            setTimeout(() => document.getElementById('ios-confirm-overlay').style.display = 'none', 300);
+        }
+
+
         function formatRupiah(input) {
             let value = input.value.replace(/[^0-9]/g, '');
             input.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
@@ -453,22 +505,44 @@
             }, 350);
         }
 
-        // --- SISTEM ADMIN ---
-        function openAdminAuth() {
-            document.getElementById('input-admin-pass').value = "";
-            document.getElementById('admin-auth-overlay').style.display = 'flex';
-            setTimeout(() => document.getElementById('admin-auth-overlay').classList.add('show'), 10);
+
+        // --- SISTEM ADMIN DENGAN AUTO LOGIN LOKAL---
+        function cekAdminAuth() {
+            // Cek apakah sandi admin sudah tersimpan di browser
+            const savedPass = localStorage.getItem('mhy_admin_pass');
+            if (savedPass) {
+                // Langsung proses login background
+                tarikDataAdmin(savedPass);
+            } else {
+                // Munculin form sandi
+                document.getElementById('input-admin-pass').value = "";
+                document.getElementById('admin-auth-overlay').style.display = 'flex';
+                setTimeout(() => document.getElementById('admin-auth-overlay').classList.add('show'), 10);
+            }
         }
+        
         function closeAdminAuth() {
             document.getElementById('admin-auth-overlay').classList.remove('show');
             setTimeout(() => document.getElementById('admin-auth-overlay').style.display = 'none', 300);
+            document.getElementById('btn-login-admin').innerText = "Login";
         }
         
         function prosesLoginAdmin() {
             const pass = document.getElementById('input-admin-pass').value;
             if(!pass) return showAlert("Admin", "Masukkan password!");
+            tarikDataAdmin(pass, true); // true = dari form input manual
+        }
 
-            document.getElementById('input-admin-pass').value = "Loading...";
+        function tarikDataAdmin(pass, isManual = false) {
+            if (isManual) {
+                document.getElementById('btn-login-admin').innerText = "Mengecek...";
+            } else {
+                // Tampilkan panel admin langsung dengan status loading
+                document.getElementById('admin-panel').style.display = 'flex';
+                setTimeout(() => document.getElementById('admin-panel').classList.add('show'), 10);
+                document.getElementById('admin-loading-text').innerText = "Sedang menarik data dari Server...";
+                document.getElementById('admin-list-container').innerHTML = `<div style="text-align:center; margin-top:40px; color:#666;" id="admin-loading-text">Sedang menarik data dari Server...</div>`;
+            }
             
             fetch(gasUrl, {
                 method: 'POST',
@@ -476,19 +550,35 @@
                 body: JSON.stringify({ action: "login_admin", password: pass })
             }).then(r => r.json()).then(res => {
                 if(res.status === "sukses_admin") {
-                    closeAdminAuth();
+                    // Simpan akses
+                    localStorage.setItem('mhy_admin_pass', pass);
+                    
+                    if (isManual) closeAdminAuth();
+                    
                     adminDataMaster = res.data;
                     document.getElementById('admin-panel').style.display = 'flex';
                     setTimeout(() => document.getElementById('admin-panel').classList.add('show'), 10);
                     renderAdminData();
                 } else {
-                    document.getElementById('input-admin-pass').value = "";
-                    showAlert("Gagal", res.pesan);
+                    if (isManual) {
+                        document.getElementById('btn-login-admin').innerText = "Login";
+                        showAlert("Gagal", res.pesan);
+                    } else {
+                        // Kalau auto-login gagal (pass salah diganti), hapus sesi
+                        logoutAdmin();
+                        showAlert("Sesi Berakhir", "Password admin telah diubah, silakan login ulang.");
+                    }
                 }
             }).catch(e => {
-                document.getElementById('input-admin-pass').value = "";
+                if (isManual) document.getElementById('btn-login-admin').innerText = "Login";
                 showAlert("Error", "Gagal menghubungi server pusat.");
             });
+        }
+
+        function logoutAdmin() {
+            localStorage.removeItem('mhy_admin_pass');
+            closeAdminPanel();
+            showAlert("Logout Berhasil", "Sesi admin telah ditutup.");
         }
 
         function closeAdminPanel() {
@@ -514,6 +604,7 @@
 
             container.innerHTML = '';
             filtered.forEach(item => {
+                // Tombol Hapus khusus Admin (Hapus permanen tanpa batasan waktu)
                 container.innerHTML += `
                     <div class="admin-card">
                         <div class="admin-card-head">
@@ -525,8 +616,31 @@
                             <p>🕒 ${item.tanggal} • ${item.jam}</p>
                             <p>📍 ${item.lokasi}</p>
                         </div>
+                        <div style="margin-top:12px; text-align:right; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;">
+                            <button onclick="hapusDataGlobal(${item.id_unik})" style="background:rgba(255,69,58,0.15); color:var(--ios-red); border:1px solid rgba(255,69,58,0.3); padding:8px 16px; border-radius:10px; font-size:13px; font-weight:bold; cursor:pointer;">Hapus Data</button>
+                        </div>
                     </div>
                 `;
+            });
+        }
+
+        // Hapus Data dari Panel Admin
+        function hapusDataGlobal(id_unik) {
+            showConfirm("Hapus Permanen", "Data ini akan dihapus dari Server Spreadsheet secara permanen. Yakin?", () => {
+                showAlert("Memproses...", "Sedang menghapus data dari pusat.");
+                fetch(gasUrl, {
+                    method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: "delete", id_unik: id_unik })
+                }).then(r => r.json()).then(res => {
+                    if(res.status === "sukses_delete") {
+                        // Hilangkan dari array master
+                        adminDataMaster = adminDataMaster.filter(d => d.id_unik != id_unik);
+                        renderAdminData(); // Refresh UI
+                        showAlert("Berhasil", "Data telah dihapus.");
+                    } else {
+                        showAlert("Gagal", "Data tidak ditemukan atau error.");
+                    }
+                }).catch(() => showAlert("Error", "Gagal menghapus ke server."));
             });
         }
 
@@ -597,7 +711,7 @@
                 { text: `Rp ${bHarga} / ${bSatuan}`, font: "bold 46px sans-serif", color: "#ffffff", height: 48 },
                 { text: bLokasi, font: "normal 32px sans-serif", color: "rgba(255, 255, 255, 0.9)", height: 36 },
                 { text: timeStr, font: "normal 28px sans-serif", color: "rgba(255, 255, 255, 0.8)", height: 32 },
-                { text: `Petugas Lapangan : ${namaPetugas}`, font: "normal 24px sans-serif", color: "rgba(255, 255, 255, 0.7)", height: 28 }
+                { text: `Petugas Lapangan : ${namaPetugas}`, font: "normal 24px sans-serif", color: "rgba(255, 255, 255, 0.6)", height: 28 }
             ];
 
             let maxTextWidth = 0; let totalHeight = 0;
@@ -666,7 +780,7 @@
             const pesanText = `${document.getElementById('barang').value}\nRp ${document.getElementById('harga').value} / ${document.getElementById('satuan').value || 'pcs'}\n${getYahYuDateTime()}\n${document.getElementById('lokasi').value || '-'}`;
             if (navigator.canShare && navigator.canShare({ files: [imageBlob] })) {
                 try { await navigator.share({ files: [imageBlob], title: 'Hasil Survei', text: pesanText }); } catch(e){}
-            } else alert("Browser belum support share langsung.");
+            } else showAlert("Maaf", "Browser HP kamu belum support share file langsung.");
         }
 
         function reset() {
@@ -702,13 +816,14 @@
 
         // HAPUS LOKAL + SPREADSHEET (Maks 2 Menit)
         function deleteFromDB(id) {
-            if (!confirm("Data yang salah ini akan dihapus dari Server Pusat juga. Lanjutkan?")) return;
-            fetch(gasUrl, {
-                method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ action: "delete", id_unik: id })
-            }).then(() => {
-                db.transaction("surveys", "readwrite").objectStore("surveys").delete(id).oncomplete = () => loadHistoryList();
-            }).catch(() => alert("Gagal konek ke server."));
+            showConfirm("Hapus Laporan", "Yakin hapus data ini? Kalau terhapus, data di pusat juga hilang.", () => {
+                fetch(gasUrl, {
+                    method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: "delete", id_unik: id })
+                }).then(() => {
+                    db.transaction("surveys", "readwrite").objectStore("surveys").delete(id).oncomplete = () => loadHistoryList();
+                }).catch(() => showAlert("Error", "Gagal konek ke server."));
+            });
         }
 
         let currentDetailItem = null;
@@ -764,13 +879,13 @@
         
         // HAPUS LOKAL SAJA (Tanpa ganggu pusat)
         function bersihkanSesi() {
-            if(!confirm("Yakin mau hapus riwayat & rekap di HP ini? (Data di Spreadsheet PUSAT tetap aman)")) return;
-            db.transaction("surveys", "readwrite").objectStore("surveys").clear().oncomplete = () => { closeRekap(); showAlert("Sesi Direset", "Siap digunakan untuk minggu depan!"); };
+            showConfirm("Sesi Baru", "Yakin hapus riwayat & rekap di HP ini? Data di Spreadsheet Pusat tetap aman.", () => {
+                db.transaction("surveys", "readwrite").objectStore("surveys").clear().oncomplete = () => { 
+                    closeRekap(); 
+                    showAlert("Sesi Direset", "Siap digunakan untuk survei minggu depan!"); 
+                };
+            });
         }
-
-        // Alert Helpers
-        function showAlert(t, m) { document.getElementById('alert-title').innerText = t; document.getElementById('alert-msg').innerText = m; document.getElementById('ios-alert').style.display = 'flex'; }
-        function closeAlert() { document.getElementById('ios-alert').style.display = 'none'; }
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
