@@ -37,7 +37,6 @@
         
         video { width: 100%; height: 100%; object-fit: cover; border-radius: 0 0 35px 35px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
 
-        /* TOMBOL NAVIGASI ATAS PREMIUM */
         .btn-top {
             position: absolute; top: 25px; z-index: 15;
             background: var(--ios-glass); color: #fff; border: 0.5px solid var(--ios-border);
@@ -55,7 +54,6 @@
             object-fit: cover; display: none; z-index: 5; border-radius: 0 0 35px 35px;
         }
 
-        /* PANEL BAWAH ULTRA GLASSMORPHISM */
         #ui-panel {
             position: absolute; bottom: 0; left: 0; width: 100%;
             padding: 30px 24px 45px 24px; background: var(--ios-glass-heavy);
@@ -99,7 +97,6 @@
         .flash-anim { animation: flashEffect 0.4s ease-out; }
         @keyframes flashEffect { 0% { opacity: 0.9; } 100% { opacity: 0; } }
 
-        /* OVERLAYS & MODALS PREMIUM */
         .overlay-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.6); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
@@ -129,7 +126,6 @@
         .btn-confirm { background: var(--ios-blue); color: #fff; box-shadow: 0 8px 15px var(--ios-blue-glow); }
         .btn-modal:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
-        /* SLIDE PANELS (Riwayat, Rekap, Admin) */
         .slide-panel {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; z-index: 5000; display: none; flex-direction: column;
@@ -187,7 +183,6 @@
         .rekap-table th { color: var(--ios-blue); font-weight: 600; background: rgba(0,0,0,0.2); }
         .rekap-table td { color: rgba(255,255,255,0.9); }
 
-        /* TAMPILAN DASHBOARD ADMIN PREMIUM */
         #admin-panel { z-index: 6000; }
         .admin-search-area { padding: 20px 20px 10px 20px; background: rgba(15, 15, 18, 0.8); backdrop-filter: blur(30px); border-bottom: 1px solid rgba(255,255,255,0.05); z-index: 2; }
         
@@ -205,7 +200,6 @@
         .admin-card-head span { color: var(--ios-green); font-weight: 700; font-size: 15px; background: rgba(48, 209, 88, 0.1); padding: 4px 10px; border-radius: 10px; }
         .admin-card-body p { margin: 6px 0; font-size: 13px; color: rgba(255,255,255,0.55); display: flex; align-items: center; gap: 8px; font-weight: 500; }
 
-        /* ALERT SIMPLE */
         #ios-alert {
             display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
             z-index: 10005; justify-content: center; align-items: center; backdrop-filter: blur(10px);
@@ -402,7 +396,6 @@
         let imageBlob = null;
         let isCameraActive = false;
 
-        // Init IndexedDB
         const request = indexedDB.open("SurveyDB", 1);
         request.onupgradeneeded = (e) => {
             db = e.target.result;
@@ -410,7 +403,6 @@
         };
         request.onsuccess = (e) => { db = e.target.result; };
 
-        // Nyalakan Kamera Langsung
         async function startApp() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -441,7 +433,6 @@
             }
         }
 
-        // --- SISTEM CUSTOM ALERT & CONFIRM ---
         function showAlert(t, m) { 
             document.getElementById('alert-title').innerText = t; 
             document.getElementById('alert-msg').innerText = m; 
@@ -496,7 +487,6 @@
             return `${days[now.getDay()]}, ${now.getDate().toString().padStart(2, '0')} ${months[now.getMonth()]} ${now.getFullYear()} • ${timeStr} ${ket}`;
         }
 
-        // --- SISTEM PETUGAS (LOKAL) ---
         function savePetugasName() {
             let val = document.getElementById('input-petugas-name').value.trim();
             if (!val) return showAlert("Perhatian", "Nama petugas wajib diisi agar laporan valid.");
@@ -517,7 +507,6 @@
             }, 400);
         }
 
-        // --- SISTEM ADMIN DENGAN AUTO LOGIN ---
         function cekAdminAuth() {
             const savedPass = localStorage.getItem('mhy_admin_pass');
             if (savedPass) {
@@ -610,6 +599,7 @@
 
             container.innerHTML = '';
             filtered.forEach(item => {
+                // BUG FIX: Ditambahin tanda KUTIP di sekitar '${item.id_unik}'
                 container.innerHTML += `
                     <div class="admin-card">
                         <div class="admin-card-head">
@@ -622,7 +612,7 @@
                             <p>📍 ${item.lokasi}</p>
                         </div>
                         <div style="margin-top:16px; text-align:right; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 14px;">
-                            <button onclick="hapusDataGlobal(${item.id_unik}, this)" style="background:rgba(255,69,58,0.1); color:var(--ios-red); border:1px solid rgba(255,69,58,0.2); padding:10px 20px; border-radius:12px; font-size:14px; font-weight:600; cursor:pointer; transition:0.2s;">Hapus Permanen</button>
+                            <button onclick="hapusDataGlobal('${item.id_unik}', this)" style="background:rgba(255,69,58,0.1); color:var(--ios-red); border:1px solid rgba(255,69,58,0.2); padding:10px 20px; border-radius:12px; font-size:14px; font-weight:600; cursor:pointer; transition:0.2s;">Hapus Permanen</button>
                         </div>
                     </div>
                 `;
@@ -641,7 +631,7 @@
                     body: JSON.stringify({ action: "delete", id_unik: id_unik })
                 }).then(r => r.json()).then(res => {
                     if(res.status === "sukses_delete") {
-                        adminDataMaster = adminDataMaster.filter(d => d.id_unik != id_unik);
+                        adminDataMaster = adminDataMaster.filter(d => String(d.id_unik) !== String(id_unik));
                         renderAdminData(); 
                     } else {
                         btnElement.innerText = originalText;
@@ -658,7 +648,6 @@
             });
         }
 
-        // --- ALUR JEPRET & WATERMARK ---
         function openModal() {
             document.getElementById('modal-barang').value = document.getElementById('barang').value;
             document.getElementById('modal-harga').value = document.getElementById('harga').value;
@@ -716,7 +705,9 @@
             }
 
             const timeStr = getYahYuDateTime();
-            const idUnik = Date.now(); 
+            
+            // BUG FIX UTAMA: ID jadi teks, bukan angka!
+            const idUnik = "MHY-" + Date.now(); 
             
             const lines = [
                 { text: bNama.toUpperCase(), font: "bold 62px sans-serif", color: "#ffffff", height: 64 },
@@ -802,7 +793,6 @@
             status.innerText = "Kamera Siap • Arahkan ke target";
         }
 
-        // --- SISTEM RIWAYAT LOKAL ---
         function openHistory() { document.getElementById('history-modal').style.display = 'flex'; setTimeout(() => document.getElementById('history-modal').classList.add('show'), 10); loadHistoryList(); }
         function closeHistory() { document.getElementById('history-modal').classList.remove('show'); setTimeout(() => document.getElementById('history-modal').style.display = 'none', 400); }
 
@@ -814,19 +804,25 @@
                 if(list.length === 0) return container.innerHTML = '<div style="text-align:center; margin-top:50px; color:rgba(255,255,255,0.4); font-weight:500;">Riwayat surveimu masih kosong.</div>';
                 
                 list.forEach(item => {
-                    const isBisaDihapus = (Date.now() - item.id) <= 120000; // 2 Menit
-                    let btnHapus = isBisaDihapus ? `<button class="btn-item-danger" onclick="deleteFromDB(${item.id}, this)">Hapus</button>` : `<span style="font-size:12px; color:rgba(255,255,255,0.3); font-weight:600;">🔒 Terkunci</span>`;
+                    // Cek apakah data ini data lama (pakai angka bulat) atau baru (pakai MHY-)
+                    let isDataLama = !String(item.id).startsWith("MHY-");
+                    // Kalau data lama, pakai cara cek waktu lama. Kalau data baru, ambil angkanya aja dari "MHY-1715..."
+                    let timeStamp = isDataLama ? item.id : parseInt(String(item.id).replace("MHY-", ""));
+                    
+                    const isBisaDihapus = (Date.now() - timeStamp) <= 120000; 
+                    
+                    // BUG FIX: Ditambahin tanda KUTIP di sekitar '${item.id}'
+                    let btnHapus = isBisaDihapus ? `<button class="btn-item-danger" onclick="deleteFromDB('${item.id}', this)">Hapus</button>` : `<span style="font-size:12px; color:rgba(255,255,255,0.3); font-weight:600;">🔒 Terkunci</span>`;
                     
                     container.innerHTML += `
                         <div class="list-item">
                             <div class="list-item-info"><h4>📦 ${item.nama}</h4><p>🕒 ${item.waktu}</p></div>
-                            <div class="list-item-actions">${btnHapus}<button class="btn-item-normal" onclick="openDetail(${item.id})">Lihat</button></div>
+                            <div class="list-item-actions">${btnHapus}<button class="btn-item-normal" onclick="openDetail('${item.id}')">Lihat</button></div>
                         </div>`;
                 });
             }
         }
 
-        // HAPUS LOKAL + SPREADSHEET (Pake Pelindung Error)
         function deleteFromDB(id, btnElement) {
             showConfirm("Koreksi Data?", "Barang yang salah ini akan ditarik mundur dari Server Pusat. Proses?", () => {
                 const originalText = btnElement.innerText;
@@ -837,7 +833,6 @@
                     method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({ action: "delete", id_unik: id })
                 }).then(r => r.json()).then(res => {
-                    // Walaupun response server gagal/error, kita tetep hapus cache lokal di HP
                     db.transaction("surveys", "readwrite").objectStore("surveys").delete(id).oncomplete = () => loadHistoryList();
                 }).catch(() => {
                     btnElement.innerText = originalText;
@@ -865,7 +860,6 @@
             if(navigator.canShare) navigator.share({ files: [file], text: `📦 ${currentDetailItem.nama}\n💰 Rp ${currentDetailItem.harga}/${currentDetailItem.satuan}\n🕒 ${currentDetailItem.waktu}`});
         }
 
-        // --- SISTEM REKAP LOKAL ---
         function openRekap() {
             document.getElementById('rekap-modal').style.display = 'flex';
             setTimeout(() => document.getElementById('rekap-modal').classList.add('show'), 10);
