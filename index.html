@@ -239,7 +239,10 @@
         
         <div class="input-group">
             <input type="text" id="lokasi" placeholder="📍 Lokasi Survei (Otomatis/Manual)">
-            <input type="text" id="barang" placeholder="📦 Nama Barang">
+            
+            <input type="text" id="barang" list="daftar-barang" placeholder="📦 Nama Barang">
+            <datalist id="daftar-barang"></datalist>
+            
             <div class="input-row">
                 <input type="text" inputmode="numeric" id="harga" placeholder="💰 Harga (Tanpa Titik)" oninput="formatRupiah(this)">
                 <input type="text" id="satuan" placeholder="⚖️ Satuan (kg/pcs)">
@@ -381,10 +384,74 @@
 
     <script>
         // =========================================================
-        // URL GOOGLE APPS SCRIPT
+        // URL GOOGLE APPS SCRIPT (LINK ASLIMU SUDAH MASUK SINI)
         // =========================================================
         const gasUrl = "https://script.google.com/macros/s/AKfycbzV_xTp7D7w1eMGmIWw7RmTbvWf5D5p3oKwtsmp50W--70iXvCWD1Whd3UHn4DE-jVwMA/exec"; 
 
+        // =========================================================
+        // DATALIST BARANG (PENYIMPANAN OTOMATIS)
+        // =========================================================
+        const defaultBarang = [
+            "Beras", "Beras Cap Dua Lele", "Beras Ketan Hitam", "Minyak Goreng Bimoli", "Minyak Goreng Sanjaya", "Minyak Goreng Sunco",
+            "Gula Pasir", "Gula Merah", "Tepung Terigu", "Tepung Terigu Cap Segitiga Biru", "Tepung Sajiku", "Tepung Tapioka / Cap Tani",
+            "Tepung Maizena", "Tepung Beras / Rose Brand", "Mentega", "Margarine Blue Band", "Bawang Merah", "Bawang Putih",
+            "Bawang Bombay", "Cabe Rawit", "Cabe Merah", "Cabe Hijau", "Daun Bawang", "Seledri", "Daun Salam", "Daun Jeruk / Daun Jeruk Muda",
+            "Daun Pandan", "Daun Kari", "Jahe", "Lengkuas (Utuh & Parut)", "Serai (Kg / Ikat)", "Kencur", "Kunyit (Utuh & Giling)",
+            "Asam Jawa", "Asam Sunti", "Merica Bubuk (100 gr) / Ladaku", "Ketumbar Bubuk (100 gr / Desaku 12,5 gr)", "Kunyit Bubuk (100 gr)",
+            "Buah Pala", "Rempah Bunga Lawang", "Rempah Kapulaga", "Rempah Kayu Manis", "Rempah Cengkeh", "Kemiri", "Wijen", "Bawang Goreng",
+            "Garam / Garam Kiloan / Garam Dolpin", "Kaldu Jamur (Totole 40 gr)", "Kaldu Ayam (Royco)", "Kecap Manis Cap Bangau (Biasa / 700 ml)",
+            "Kecap Sedap (725 gr)", "Kecap Asin / Kecap Asin Singa", "Saus Sambal ABC (Biasa / 135 gr / Sachet)", "Saus Tomat ABC",
+            "Saus Sambal Sasa (Sachet isi 24/25 pcs)", "Saus Tomat Sasa", "Saori Saus Tiram (Biasa / 270 ml / 1 Lt)", "Saus Barbeque",
+            "Mayones", "Terasi", "Tauco", "Bumbu Marinasi Desaku (Biasa / Kunyit 15 gr)", "Cuka (Biasa / 650 ml)", "Soda Kue / Baking Soda",
+            "Bumbu Mie Aceh", "Bumbu Giling Ayam", "Bumbu Giling Ikan", "Bumbu Giling Nasi Goreng", "Bumbu Giling Merah Kari / Giling Kari",
+            "Bumbu Giling Rendang", "Bumbu Giling Semur", "Bumbu Giling Masak Merah", "Bumbu Giling Tumis Aceh / Tumis Udang Aceh",
+            "Bumbu Giling Mie", "Bumbu Giling Sop", "Bumbu Ungkep Ayam", "Bumbu Ayam Lengkuas", "Bumbu Pecal", "Bumbu Keumamah",
+            "Cabe Merah Giling", "Cabe Merah Kering", "Kentang / Kentang Frozen", "Wortel", "Buncis", "Kacang Panjang", "Tomat",
+            "Selada", "Jagung Manis", "Sawi Hijau / Sawi Hijau Manis", "Sawi Putih", "Kol / Bunga Kol", "Pakcoy", "Timun", "Tauge",
+            "Labu Siam", "Ubi Jalar", "Baby Corn", "Ayam", "Daging Sapi", "Ikan Lele", "Ikan Kembung", "Ikan Tuna", "Udang", "Teri",
+            "Telur (Ayam & Puyuh)", "Tahu / Tahu Walik / Tahu Bakso", "Tempe / Tempe Kiloan", "Bakso Ikan", "Jeruk Manis", "Jeruk Nipis",
+            "Pisang", "Semangka / Semangka Non Biji", "Melon / Melon Super", "Apel", "Buah Pir Madu", "Anggur Merah", "Anggur Hijau",
+            "Kelengkeng", "Duku", "Langsat", "Salak / Salak Pondoh", "Kurma Sukari", "Buah Naga", "Matoa", "Buah Kelapa", "Mie Kiloan",
+            "Mie Lidi Cap Rumoh Adat", "Mie Telur 3 Ayam", "Mie Gaga Telur", "Mie Hun (isi 40)", "Sagu Mutiara", "Sagu Mata Ikan",
+            "Santan Kelapa / Santan Kara", "Agar Agar Sparrow Brand", "Puding Susu (isi 145 gr)", "Puding Nutrijel (Rasa Strawberry)",
+            "Nata de Coco (isi 500 gr)", "Selasih", "Susu Frisian Flag UHT (115 ml / 225 ml)", "Susu Frisian Flag Kental Manis",
+            "Susu Greenfields (950 ml)", "Susu Clevo UHT (115 ml)", "Sirup Kurnia", "Keju Cheddar / Keju Slice (isi 12 lembar)",
+            "Selai Serikaya", "Roti Tawar (isi 14 / 16 lembar / Bantal)", "Roti Burger / Roti Burger Virgo (isi 24 pcs)",
+            "Roti Manis Wijen", "Roti Manis isi Kelapa", "Roti Kelapa", "Roti Coklat / Roti Pisang Coklat", "Roti Abon",
+            "Kue Bakpia / Bakpia Kacang", "Kue Kacang", "Kue Bhoi", "Kue Onde-onde isi Kelapa", "Kue Pizza (80 gr)", "Bolu Kukus",
+            "Bolu Susu", "Bolu Pisang", "Donat / Donat Bulat", "Donat Ceres (60 gr)", "Donat Paha Ayam (60 gr)",
+            "Kacang Tanah (Biasa / Tanpa Kulit Ari)", "Kacang Hijau", "Kacang Hijau Mete", "Kacang Panjang / Kacang Polo",
+            "Kacang Arab (15 gr / 25 gr)", "Kacang Kuning (15 gr / 25 gr)", "Kacang Madu", "Kacang Kulit Sangrai", "Kacang Atom",
+            "Kerupuk Merah Putih", "Keripik Tempe Sagu"
+        ];
+
+        // Ambil data barang yang pernah disimpan sebelumnya di HP ini
+        let daftarBarang = JSON.parse(localStorage.getItem('savedDaftarBarang')) || defaultBarang;
+
+        function renderDatalist() {
+            const datalist = document.getElementById("daftar-barang");
+            if (!datalist) return;
+            datalist.innerHTML = "";
+            daftarBarang.forEach(barang => {
+                const option = document.createElement("option");
+                option.value = barang;
+                datalist.appendChild(option);
+            });
+        }
+
+        function tambahBarangBaru() {
+            const inputBarang = document.getElementById("barang").value.trim();
+            // Kalau inputnya gak kosong & barangnya belum ada di list
+            if (inputBarang !== "" && !daftarBarang.includes(inputBarang)) {
+                daftarBarang.push(inputBarang);
+                localStorage.setItem('savedDaftarBarang', JSON.stringify(daftarBarang));
+                renderDatalist();
+            }
+        }
+
+        // =========================================================
+        // SISA FUNGSI JS ASLI KAMU
+        // =========================================================
         let db;
         let adminDataMaster = []; 
 
@@ -404,6 +471,8 @@
         request.onsuccess = (e) => { db = e.target.result; };
 
         async function startApp() {
+            renderDatalist(); // Biar list barang langsung muncul pas aplikasi buka
+
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ 
                     video: { facingMode: 'environment', width: {ideal: 1920}, height: {ideal: 1080} } 
@@ -599,7 +668,6 @@
 
             container.innerHTML = '';
             filtered.forEach(item => {
-                // BUG FIX: Ditambahin tanda KUTIP di sekitar '${item.id_unik}'
                 container.innerHTML += `
                     <div class="admin-card">
                         <div class="admin-card-head">
@@ -706,7 +774,6 @@
 
             const timeStr = getYahYuDateTime();
             
-            // BUG FIX UTAMA: ID jadi teks, bukan angka!
             const idUnik = "MHY-" + Date.now(); 
             
             const lines = [
@@ -787,10 +854,16 @@
         }
 
         function reset() {
+            // FUNGSI INI AKAN SIMPAN BARANG BARU OTOMATIS
+            tambahBarangBaru(); 
+            
             document.getElementById('barang').value = ""; document.getElementById('harga').value = ""; document.getElementById('satuan').value = "";
             preview.style.display = 'none'; video.style.display = 'block';
             snapBtn.style.display = 'block'; document.getElementById('action-area').style.display = 'none';
             status.innerText = "Kamera Siap • Arahkan ke target";
+            
+            // FOKUS BALIK KE INPUT BARANG BIAR LANGSUNG NGETIK
+            document.getElementById("barang").focus();
         }
 
         function openHistory() { document.getElementById('history-modal').style.display = 'flex'; setTimeout(() => document.getElementById('history-modal').classList.add('show'), 10); loadHistoryList(); }
@@ -804,14 +877,11 @@
                 if(list.length === 0) return container.innerHTML = '<div style="text-align:center; margin-top:50px; color:rgba(255,255,255,0.4); font-weight:500;">Riwayat surveimu masih kosong.</div>';
                 
                 list.forEach(item => {
-                    // Cek apakah data ini data lama (pakai angka bulat) atau baru (pakai MHY-)
                     let isDataLama = !String(item.id).startsWith("MHY-");
-                    // Kalau data lama, pakai cara cek waktu lama. Kalau data baru, ambil angkanya aja dari "MHY-1715..."
                     let timeStamp = isDataLama ? item.id : parseInt(String(item.id).replace("MHY-", ""));
                     
                     const isBisaDihapus = (Date.now() - timeStamp) <= 120000; 
                     
-                    // BUG FIX: Ditambahin tanda KUTIP di sekitar '${item.id}'
                     let btnHapus = isBisaDihapus ? `<button class="btn-item-danger" onclick="deleteFromDB('${item.id}', this)">Hapus</button>` : `<span style="font-size:12px; color:rgba(255,255,255,0.3); font-weight:600;">🔒 Terkunci</span>`;
                     
                     container.innerHTML += `
