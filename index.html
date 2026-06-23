@@ -71,6 +71,24 @@
         .input-group { display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px; }
         .input-row { display: flex; gap: 14px; width: 100%; }
 
+        .input-icon-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+        .input-icon-wrapper svg {
+            position: absolute;
+            left: 18px;
+            width: 20px;
+            height: 20px;
+            fill: rgba(255, 255, 255, 0.4);
+            pointer-events: none;
+            transition: fill 0.3s ease;
+        }
+        .input-icon-wrapper input { padding-left: 48px; }
+        .input-icon-wrapper input:focus + svg { fill: var(--ios-blue); }
+
         input {
             width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
             border-radius: 18px; padding: 18px 20px; color: #fff; font-size: 16px; font-weight: 500;
@@ -82,7 +100,7 @@
         #harga { flex: 6; } #satuan { flex: 4; }
 
         .btn {
-            width: 100%; padding: 18px; border: none; border-radius: 20px;
+            width: 100%; padding: 18px; border: none; border-radius: 20px; display: flex; align-items: center; justify-content: center;
             font-size: 17px; font-weight: 700; cursor: pointer; transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); text-align: center;
         }
         .btn:active { transform: scale(0.95); }
@@ -118,7 +136,7 @@
         
         .modal-actions { display: flex; gap: 14px; margin-top: 24px; }
         .btn-modal {
-            flex: 1; padding: 16px; border: none; border-radius: 16px;
+            flex: 1; padding: 16px; border: none; border-radius: 16px; display: flex; align-items: center; justify-content: center;
             font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s;
         }
         .btn-modal:active { transform: scale(0.93); }
@@ -141,7 +159,7 @@
         }
         .panel-header h3 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
         .panel-header button {
-            background: transparent; border: none; color: var(--ios-blue);
+            background: transparent; border: none; color: var(--ios-blue); display: flex; align-items: center;
             font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s;
         }
         .panel-header button:active { opacity: 0.6; }
@@ -155,8 +173,8 @@
             box-shadow: 0 10px 20px rgba(0,0,0,0.2); backdrop-filter: blur(10px);
         }
         .list-item-info { flex: 1; }
-        .list-item-info h4 { margin: 0 0 6px 0; font-size: 17px; font-weight: 600; }
-        .list-item-info p { margin: 0; font-size: 13px; color: rgba(255,255,255,0.5); }
+        .list-item-info h4 { margin: 0 0 6px 0; font-size: 17px; font-weight: 600; display: flex; align-items: center; }
+        .list-item-info p { margin: 0; font-size: 13px; color: rgba(255,255,255,0.5); display: flex; align-items: center; }
         
         .list-item-actions { display: flex; align-items: center; gap: 10px; }
         .btn-item-normal {
@@ -176,8 +194,8 @@
         .detail-actions { padding: 24px; background: var(--ios-glass-heavy); border-top: 1px solid rgba(255,255,255,0.05); backdrop-filter: blur(30px); }
 
         .rekap-info { margin-bottom: 24px; background: rgba(255,255,255,0.03); padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); box-shadow: inset 0 2px 10px rgba(0,0,0,0.2); }
-        .rekap-info p { margin: 6px 0; font-size: 14px; color: #ccc; }
-        .rekap-info b { color: #fff; font-size: 15px; }
+        .rekap-info p { margin: 6px 0; font-size: 14px; color: #ccc; display: flex; align-items: center; }
+        .rekap-info b { color: #fff; font-size: 15px; margin-left: 5px; }
         .rekap-table { width: 100%; border-collapse: collapse; font-size: 14px; background: rgba(25,25,30,0.5); border-radius: 16px; overflow: hidden; }
         .rekap-table th, .rekap-table td { padding: 14px 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.03); }
         .rekap-table th { color: var(--ios-blue); font-weight: 600; background: rgba(0,0,0,0.2); }
@@ -229,7 +247,9 @@
         <img id="photo-preview">
         <div id="flash"></div>
         
-        <button class="btn-top btn-admin" onclick="cekAdminAuth()">📊</button>
+        <button class="btn-top btn-admin" onclick="cekAdminAuth()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+        </button>
         <button class="btn-top btn-rekap" onclick="openRekap()">Tabel Rekap</button>
         <button class="btn-top btn-riwayat" onclick="openHistory()">Riwayat</button>
     </div>
@@ -238,22 +258,40 @@
         <center><div class="status-pill" id="status">Kamera Tersedia • GPS Aktif</div></center>
         
         <div class="input-group">
-            <input type="text" id="lokasi" placeholder="📍 Lokasi Survei (Otomatis/Manual)">
+            <div class="input-icon-wrapper">
+                <input type="text" id="lokasi" placeholder="Lokasi Survei (Otomatis/Manual)">
+                <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            </div>
             
-            <input type="text" id="barang" list="daftar-barang" placeholder="📦 Nama Barang">
+            <div class="input-icon-wrapper">
+                <input type="text" id="barang" list="daftar-barang" placeholder="Nama Barang">
+                <svg viewBox="0 0 24 24"><path d="M21 16.5c0 .38-.21.71-.53.88l-7.9 4.44c-.16.12-.36.18-.57.18-.21 0-.41-.06-.57-.18l-7.9-4.44A.991.991 0 0 1 3 16.5v-9c0-.38.21-.71.53-.88l7.9-4.44c.16-.12.36-.18.57-.18.21 0 .41.06.57.18l7.9 4.44c.32.17.53.5.53.88v9zM12 4.15L6.04 7.5 12 10.85l5.96-3.35L12 4.15z"/></svg>
+            </div>
             <datalist id="daftar-barang"></datalist>
             
             <div class="input-row">
-                <input type="text" inputmode="numeric" id="harga" placeholder="💰 Harga (Tanpa Titik)" oninput="formatRupiah(this)">
-                <input type="text" id="satuan" placeholder="⚖️ Satuan (kg/pcs)">
+                <div class="input-icon-wrapper" style="flex: 6;">
+                    <input type="text" inputmode="numeric" id="harga" placeholder="Harga (Tanpa Titik)" oninput="formatRupiah(this)">
+                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-1.08 2.4-1.73 0-.9-.67-1.67-2.7-2.13-2.4-.54-3.8-1.58-3.8-3.35 0-1.71 1.34-2.83 2.76-3.14V4h2.67v1.89c1.37.28 2.61 1.25 2.78 2.94h-1.91c-.13-.92-.81-1.55-2.27-1.55-1.5 0-2.14.86-2.14 1.55 0 .89.77 1.48 2.8 1.98 2.53.62 3.7 1.63 3.7 3.42 0 1.93-1.41 2.97-2.96 3.26z"/></svg>
+                </div>
+                <div class="input-icon-wrapper" style="flex: 4;">
+                    <input type="text" id="satuan" placeholder="Satuan (kg/pcs)">
+                    <svg viewBox="0 0 24 24"><path d="M12 2C10.9 2 10 2.9 10 4c0 .8.5 1.5 1.2 1.8L7 11H3v2h8v-2H9.2l3.4-4.8c.1.1.3.1.4.1s.3 0 .4-.1L16.8 11H15v2h8v-2h-4l-4.2-5.2c.7-.3 1.2-1 1.2-1.8 0-1.1-.9-2-2-2zm-3 12H5v6h4v-6zm10 0h-4v6h4v-6z"/></svg>
+                </div>
             </div>
         </div>
 
-        <button class="btn btn-capture" id="snap-btn" onclick="capture()">📸 Jepret Foto</button>
+        <button class="btn btn-capture" id="snap-btn" onclick="capture()">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;"><circle cx="12" cy="12" r="3.2"/><path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg> Jepret Foto
+        </button>
 
         <div id="action-area">
-            <button class="btn btn-share" onclick="shareToWA()">💬 Kirim ke WhatsApp</button>
-            <button class="btn btn-next" onclick="reset()">🔄 Lanjut Barang Baru</button>
+            <button class="btn btn-share" onclick="shareToWA()">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg> Kirim ke WhatsApp
+            </button>
+            <button class="btn btn-next" onclick="reset()">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg> Lanjut Barang Baru
+            </button>
         </div>
     </div>
 
@@ -261,7 +299,10 @@
         <div class="ios-modal">
             <h3>Siapa Namamu?</h3>
             <p>Isi nama lengkap untuk pendataan laporan.</p>
-            <input type="text" id="input-petugas-name" placeholder="👤 Nama Lengkap" style="margin-bottom: 20px; text-align: center;">
+            <div class="input-icon-wrapper" style="margin-bottom: 20px;">
+                <input type="text" id="input-petugas-name" placeholder="Nama Lengkap" style="text-align: left;">
+                <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            </div>
             <button class="btn btn-capture" style="width: 100%;" onclick="savePetugasName()">Simpan</button>
         </div>
     </div>
@@ -270,7 +311,10 @@
         <div class="ios-modal">
             <h3>Login Admin</h3>
             <p>Masukkan password untuk melihat data Global dari satelit.</p>
-            <input type="password" id="input-admin-pass" placeholder="🔑 Password" style="margin-bottom: 20px; text-align: center;">
+            <div class="input-icon-wrapper" style="margin-bottom: 20px;">
+                <input type="password" id="input-admin-pass" placeholder="Password" style="text-align: left;">
+                <svg viewBox="0 0 24 24"><path d="M12.65 10A5.99 5.99 0 007 6c-3.31 0-6 2.69-6 6s2.69 6 6 6a5.99 5.99 0 005.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>
+            </div>
             <div class="modal-actions">
                 <button class="btn-modal btn-cancel" onclick="closeAdminAuth()">Batal</button>
                 <button class="btn-modal btn-confirm" id="btn-login-admin" onclick="prosesLoginAdmin()">Login</button>
@@ -283,10 +327,19 @@
             <h3>Data Belum Lengkap</h3>
             <p>Isi barang & harganya dulu ya sebelum lanjut foto.</p>
             <div class="input-group" style="margin-bottom: 0;">
-                <input type="text" id="modal-barang" placeholder="📦 Nama Barang">
+                <div class="input-icon-wrapper">
+                    <input type="text" id="modal-barang" placeholder="Nama Barang">
+                    <svg viewBox="0 0 24 24"><path d="M21 16.5c0 .38-.21.71-.53.88l-7.9 4.44c-.16.12-.36.18-.57.18-.21 0-.41-.06-.57-.18l-7.9-4.44A.991.991 0 0 1 3 16.5v-9c0-.38.21-.71.53-.88l7.9-4.44c.16-.12.36-.18.57-.18.21 0 .41.06.57.18l7.9 4.44c.32.17.53.5.53.88v9zM12 4.15L6.04 7.5 12 10.85l5.96-3.35L12 4.15z"/></svg>
+                </div>
                 <div class="input-row">
-                    <input type="text" inputmode="numeric" id="modal-harga" placeholder="💰 Harga" oninput="formatRupiah(this)">
-                    <input type="text" id="modal-satuan" placeholder="⚖️ Satuan">
+                    <div class="input-icon-wrapper" style="flex: 1;">
+                        <input type="text" inputmode="numeric" id="modal-harga" placeholder="Harga" oninput="formatRupiah(this)">
+                        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-1.08 2.4-1.73 0-.9-.67-1.67-2.7-2.13-2.4-.54-3.8-1.58-3.8-3.35 0-1.71 1.34-2.83 2.76-3.14V4h2.67v1.89c1.37.28 2.61 1.25 2.78 2.94h-1.91c-.13-.92-.81-1.55-2.27-1.55-1.5 0-2.14.86-2.14 1.55 0 .89.77 1.48 2.8 1.98 2.53.62 3.7 1.63 3.7 3.42 0 1.93-1.41 2.97-2.96 3.26z"/></svg>
+                    </div>
+                    <div class="input-icon-wrapper" style="flex: 1;">
+                        <input type="text" id="modal-satuan" placeholder="Satuan">
+                        <svg viewBox="0 0 24 24"><path d="M12 2C10.9 2 10 2.9 10 4c0 .8.5 1.5 1.2 1.8L7 11H3v2h8v-2H9.2l3.4-4.8c.1.1.3.1.4.1s.3 0 .4-.1L16.8 11H15v2h8v-2h-4l-4.2-5.2c.7-.3 1.2-1 1.2-1.8 0-1.1-.9-2-2-2zm-3 12H5v6h4v-6zm10 0h-4v6h4v-6z"/></svg>
+                    </div>
                 </div>
             </div>
             <div class="modal-actions">
@@ -317,12 +370,21 @@
         </div>
         <div class="admin-search-area">
             <div class="input-group" style="margin-bottom:0;">
-                <input type="text" id="search-petugas" placeholder="🔍 Cari Nama Petugas..." onkeyup="renderAdminData()">
-                <input type="text" id="search-barang" placeholder="📦 Cari Nama Barang..." onkeyup="renderAdminData()">
+                <div class="input-icon-wrapper" style="margin-bottom: 14px;">
+                    <input type="text" id="search-petugas" placeholder="Cari Nama Petugas..." onkeyup="renderAdminData()">
+                    <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                </div>
+                <div class="input-icon-wrapper">
+                    <input type="text" id="search-barang" placeholder="Cari Nama Barang..." onkeyup="renderAdminData()">
+                    <svg viewBox="0 0 24 24"><path d="M21 16.5c0 .38-.21.71-.53.88l-7.9 4.44c-.16.12-.36.18-.57.18-.21 0-.41-.06-.57-.18l-7.9-4.44A.991.991 0 0 1 3 16.5v-9c0-.38.21-.71.53-.88l7.9-4.44c.16-.12.36-.18.57-.18.21 0 .41.06.57.18l7.9 4.44c.32.17.53.5.53.88v9zM12 4.15L6.04 7.5 12 10.85l5.96-3.35L12 4.15z"/></svg>
+                </div>
             </div>
         </div>
         <div class="list-container" id="admin-list-container">
-            <div style="text-align:center; margin-top:50px; color:rgba(255,255,255,0.5); font-weight: 500;" id="admin-loading-text">Sedang memuat data dari server... ⏳</div>
+            <div style="text-align:center; margin-top:50px; color:rgba(255,255,255,0.5); font-weight: 500; display:flex; align-items:center; justify-content:center;" id="admin-loading-text">
+                Sedang memuat data dari server... 
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="margin-left: 6px;"><path d="M6 2v6h.01L6 8.01 10 12l-4 4 .01.01H6V22h12v-5.99h-.01L18 16l-4-4 4-3.99-.01-.01H18V2H6zm10 14.5V20H8v-3.5l4-4 4 4zm-4-5l-4-4V4h8v3.5l-4 4z"/></svg>
+            </div>
         </div>
     </div>
 
@@ -336,14 +398,18 @@
 
     <div id="detail-modal" class="slide-panel" style="z-index: 5100;">
         <div class="panel-header">
-            <button onclick="closeDetail()">◂ Kembali</button>
+            <button onclick="closeDetail()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: text-bottom; margin-right: 4px;"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg> Kembali
+            </button>
             <h3 id="detail-title">Detail Barang</h3>
             <div style="width: 60px;"></div> 
         </div>
         <div id="detail-content">
             <img id="detail-img" src="">
             <div class="detail-actions">
-                <button class="btn btn-share" style="width: 100%; margin:0;" onclick="shareHistoryItem()">💬 Kirim ke WhatsApp</button>
+                <button class="btn btn-share" style="width: 100%; margin:0;" onclick="shareHistoryItem()">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg> Kirim ke WhatsApp
+                </button>
             </div>
         </div>
     </div>
@@ -357,7 +423,9 @@
             <div class="rekap-info">
                 <p>Nama Petugas : <b id="nama-petugas-rekap"></b></p>
                 <p>Tgl : <b id="rekap-tgl"></b></p>
-                <p style="font-size: 12px; margin-top: 12px; color: var(--ios-blue); cursor: pointer; font-weight: 600;" onclick="gantiNamaPetugas()">✏️ Ketuk untuk ganti nama petugas</p>
+                <p style="font-size: 13px; margin-top: 12px; color: var(--ios-blue); cursor: pointer; font-weight: 600;" onclick="gantiNamaPetugas()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 6px;"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg> Ketuk untuk ganti nama petugas
+                </p>
             </div>
             <table class="rekap-table">
                 <thead><tr><th>Nama Barang</th><th>Harga</th><th>Satuan</th></tr></thead>
@@ -365,8 +433,12 @@
             </table>
         </div>
         <div class="detail-actions">
-            <button class="btn btn-share" onclick="copyRekapWA()" style="width:100%; margin:0; background:linear-gradient(135deg, #30d158, #24a144); box-shadow: 0 10px 20px rgba(48, 209, 88, 0.3); margin-bottom: 15px;">📋 Copy Data Rekap</button>
-            <button class="btn btn-next" style="width:100%; border-color: rgba(255, 69, 58, 0.4); color: var(--ios-red);" onclick="bersihkanSesi()">🧹 Bersihkan Sesi (Mulai Baru)</button>
+            <button class="btn btn-share" onclick="copyRekapWA()" style="width:100%; margin:0; background:linear-gradient(135deg, #30d158, #24a144); box-shadow: 0 10px 20px rgba(48, 209, 88, 0.3); margin-bottom: 15px;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;"><path d="M19 2h-4.18C14.4.84 13.3 0 12 0c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm7 18H5V4h2v3h10V4h2v16z"/></svg> Copy Data Rekap
+            </button>
+            <button class="btn btn-next" style="width:100%; border-color: rgba(255, 69, 58, 0.4); color: var(--ios-red);" onclick="bersihkanSesi()">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;"><path d="M19.36 2.72L20.78 4.14L15.06 9.85C16.13 11.39 16.28 13.24 15.38 14.14L13.96 15.56L15.38 16.97L13.96 18.39L12.55 16.97L11.13 18.39L9.72 16.97L4.06 22.63L1.23 19.8L6.89 14.14L5.47 12.72L6.89 11.31L5.47 9.89L6.89 8.48L8.3 9.89C9.2 8.99 11.06 9.14 12.59 10.21L18.3 4.5L16.89 3.08L18.3 1.66L19.36 2.72Z"/></svg> Bersihkan Sesi (Mulai Baru)
+            </button>
         </div>
     </div>
 
@@ -545,7 +617,7 @@
         function getYahYuDateTime() {
             const now = new Date();
             const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            const fullMonths = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
             const hours = now.getHours();
             let ket = "Malam";
             if (hours >= 5 && hours < 11) ket = "Pagi";
@@ -553,7 +625,7 @@
             else if (hours >= 15 && hours < 19) ket = "Sore";
 
             const timeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
-            return `${days[now.getDay()]}, ${now.getDate().toString().padStart(2, '0')} ${months[now.getMonth()]} ${now.getFullYear()} • ${timeStr} ${ket}`;
+            return `${days[now.getDay()]}, ${now.getDate().toString().padStart(2, '0')} ${fullMonths[now.getMonth()]} ${now.getFullYear()} • ${timeStr} ${ket}`;
         }
 
         function savePetugasName() {
@@ -605,7 +677,7 @@
             } else {
                 document.getElementById('admin-panel').style.display = 'flex';
                 setTimeout(() => document.getElementById('admin-panel').classList.add('show'), 10);
-                document.getElementById('admin-list-container').innerHTML = `<div style="text-align:center; margin-top:50px; color:rgba(255,255,255,0.5); font-weight:500;">Menghubungkan ke satelit... ⏳</div>`;
+                document.getElementById('admin-list-container').innerHTML = `<div style="text-align:center; margin-top:50px; color:rgba(255,255,255,0.5); font-weight:500; display:flex; align-items:center; justify-content:center;">Menghubungkan ke satelit... <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="margin-left: 6px;"><path d="M6 2v6h.01L6 8.01 10 12l-4 4 .01.01H6V22h12v-5.99h-.01L18 16l-4-4 4-3.99-.01-.01H18V2H6zm10 14.5V20H8v-3.5l4-4 4 4zm-4-5l-4-4V4h8v3.5l-4 4z"/></svg></div>`;
             }
             
             fetch(gasUrl, {
@@ -671,13 +743,13 @@
                 container.innerHTML += `
                     <div class="admin-card">
                         <div class="admin-card-head">
-                            <b>📦 ${item.nama_barang}</b>
+                            <b><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 6px;"><path d="M21 16.5c0 .38-.21.71-.53.88l-7.9 4.44c-.16.12-.36.18-.57.18-.21 0-.41-.06-.57-.18l-7.9-4.44A.991.991 0 0 1 3 16.5v-9c0-.38.21-.71.53-.88l7.9-4.44c.16-.12.36-.18.57-.18.21 0 .41.06.57.18l7.9 4.44c.32.17.53.5.53.88v9zM12 4.15L6.04 7.5 12 10.85l5.96-3.35L12 4.15z"/></svg> ${item.nama_barang}</b>
                             <span>Rp ${formatAngkaTitik(item.harga)}/${item.satuan}</span>
                         </div>
                         <div class="admin-card-body">
-                            <p>👤 Petugas: ${item.petugas}</p>
-                            <p>🕒 ${item.tanggal} • ${item.jam}</p>
-                            <p>📍 ${item.lokasi}</p>
+                            <p><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg> Petugas: ${item.petugas}</p>
+                            <p><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg> ${item.tanggal} • ${item.jam}</p>
+                            <p><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> ${item.lokasi}</p>
                         </div>
                         <div style="margin-top:16px; text-align:right; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 14px;">
                             <button onclick="hapusDataGlobal('${item.id_unik}', this)" style="background:rgba(255,69,58,0.1); color:var(--ios-red); border:1px solid rgba(255,69,58,0.2); padding:10px 20px; border-radius:12px; font-size:14px; font-weight:600; cursor:pointer; transition:0.2s;">Hapus Permanen</button>
@@ -689,8 +761,8 @@
 
         function hapusDataGlobal(id_unik, btnElement) {
             showConfirm("Hapus Selamanya?", "Data ini akan dihapus dari Server Pusat tanpa bisa dikembalikan. Lanjutkan?", () => {
-                const originalText = btnElement.innerText;
-                btnElement.innerText = "Memusnahkan... ⏳";
+                const originalText = btnElement.innerHTML;
+                btnElement.innerHTML = 'Memusnahkan... <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-left: 6px;"><path d="M6 2v6h.01L6 8.01 10 12l-4 4 .01.01H6V22h12v-5.99h-.01L18 16l-4-4 4-3.99-.01-.01H18V2H6zm10 14.5V20H8v-3.5l4-4 4 4zm-4-5l-4-4V4h8v3.5l-4 4z"/></svg>';
                 btnElement.disabled = true;
                 btnElement.style.opacity = "0.5";
 
@@ -702,13 +774,13 @@
                         adminDataMaster = adminDataMaster.filter(d => String(d.id_unik) !== String(id_unik));
                         renderAdminData(); 
                     } else {
-                        btnElement.innerText = originalText;
+                        btnElement.innerHTML = originalText;
                         btnElement.disabled = false;
                         btnElement.style.opacity = "1";
                         showAlert("Gagal", "Data tidak ditemukan atau error di server.");
                     }
                 }).catch(() => {
-                    btnElement.innerText = originalText;
+                    btnElement.innerHTML = originalText;
                     btnElement.disabled = false;
                     btnElement.style.opacity = "1";
                     showAlert("Error", "Gagal memproses. Periksa jaringan.");
@@ -822,14 +894,14 @@
 
             const now = new Date();
             const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            const fullMonths = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
             
             fetch(gasUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({
                     action: "insert", id_unik: idUnik,
-                    tanggal: `${days[now.getDay()]}, ${now.getDate().toString().padStart(2, '0')} ${months[now.getMonth()]} ${now.getFullYear()}`,
+                    tanggal: `${days[now.getDay()]}, ${now.getDate().toString().padStart(2, '0')} ${fullMonths[now.getMonth()]} ${now.getFullYear()}`,
                     jam: now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0'),
                     petugas: namaPetugas, lokasi: bLokasi, nama_barang: bNama, harga: bHarga, satuan: bSatuan
                 })
@@ -882,11 +954,11 @@
                     
                     const isBisaDihapus = (Date.now() - timeStamp) <= 120000; 
                     
-                    let btnHapus = isBisaDihapus ? `<button class="btn-item-danger" onclick="deleteFromDB('${item.id}', this)">Hapus</button>` : `<span style="font-size:12px; color:rgba(255,255,255,0.3); font-weight:600;">🔒 Terkunci</span>`;
+                    let btnHapus = isBisaDihapus ? `<button class="btn-item-danger" onclick="deleteFromDB('${item.id}', this)">Hapus</button>` : `<span style="font-size:12px; color:rgba(255,255,255,0.3); font-weight:600;"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: baseline; margin-right: 4px;"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/></svg> Terkunci</span>`;
                     
                     container.innerHTML += `
                         <div class="list-item">
-                            <div class="list-item-info"><h4>📦 ${item.nama}</h4><p>🕒 ${item.waktu}</p></div>
+                            <div class="list-item-info"><h4><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 6px;"><path d="M21 16.5c0 .38-.21.71-.53.88l-7.9 4.44c-.16.12-.36.18-.57.18-.21 0-.41-.06-.57-.18l-7.9-4.44A.991.991 0 0 1 3 16.5v-9c0-.38.21-.71.53-.88l7.9-4.44c.16-.12.36-.18.57-.18.21 0 .41.06.57.18l7.9 4.44c.32.17.53.5.53.88v9zM12 4.15L6.04 7.5 12 10.85l5.96-3.35L12 4.15z"/></svg> ${item.nama}</h4><p><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 6px;"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg> ${item.waktu}</p></div>
                             <div class="list-item-actions">${btnHapus}<button class="btn-item-normal" onclick="openDetail('${item.id}')">Lihat</button></div>
                         </div>`;
                 });
@@ -895,8 +967,8 @@
 
         function deleteFromDB(id, btnElement) {
             showConfirm("Koreksi Data?", "Barang yang salah ini akan ditarik mundur dari Server Pusat. Proses?", () => {
-                const originalText = btnElement.innerText;
-                btnElement.innerText = "⏳";
+                const originalText = btnElement.innerHTML;
+                btnElement.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 2v6h.01L6 8.01 10 12l-4 4 .01.01H6V22h12v-5.99h-.01L18 16l-4-4 4-3.99-.01-.01H18V2H6zm10 14.5V20H8v-3.5l4-4 4 4zm-4-5l-4-4V4h8v3.5l-4 4z"/></svg>';
                 btnElement.disabled = true;
 
                 fetch(gasUrl, {
@@ -905,7 +977,7 @@
                 }).then(r => r.json()).then(res => {
                     db.transaction("surveys", "readwrite").objectStore("surveys").delete(id).oncomplete = () => loadHistoryList();
                 }).catch(() => {
-                    btnElement.innerText = originalText;
+                    btnElement.innerHTML = originalText;
                     btnElement.disabled = false;
                     showAlert("Koneksi Buruk", "Gagal menghubungi pusat, coba sebentar lagi.");
                 });
@@ -936,7 +1008,9 @@
             
             document.getElementById('nama-petugas-rekap').innerText = localStorage.getItem("mhy_petugas") || "Belum Diatur";
             const now = new Date();
-            document.getElementById('rekap-tgl').innerText = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth()+1).toString().padStart(2, '0')}/${now.getFullYear()}`;
+            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const fullMonths = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            document.getElementById('rekap-tgl').innerText = `${days[now.getDay()]}, ${now.getDate().toString().padStart(2, '0')} ${fullMonths[now.getMonth()]} ${now.getFullYear()}`;
             
             if (!db) return;
             db.transaction("surveys", "readonly").objectStore("surveys").getAll().onsuccess = (e) => {
