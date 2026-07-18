@@ -1,0 +1,2642 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Survei Harga Pasar Premium</title>
+    
+    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="./icon-192.png">
+    <meta name="theme-color" content="#000000">
+
+    <!-- Library Ekspor Excel & PDF -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        :root {
+            --ios-blue: #0a84ff;
+            --ios-blue-glow: rgba(10, 132, 255, 0.4);
+            --ios-red: #ff453a;
+            --ios-green: #30d158;
+            --ios-glass: rgba(28, 28, 30, 0.65);
+            --ios-glass-heavy: rgba(15, 15, 18, 0.85);
+            --ios-border: rgba(255, 255, 255, 0.1);
+            --font-main: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body, html {
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            background-color: #050505; color: #fff; font-family: var(--font-main);
+            overflow: hidden; display: flex; flex-direction: column;
+        }
+
+        #viewport {
+            flex: 1; position: relative; display: flex;
+            align-items: center; justify-content: center;
+            background: radial-gradient(circle at top, #1a1a24 0%, #000 100%);
+        }
+        
+        video { width: 100%; height: 100%; object-fit: cover; border-radius: 0 0 35px 35px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
+
+        .top-nav {
+            position: absolute; top: max(25px, env(safe-area-inset-top)); left: 16px; right: 16px; z-index: 15;
+            display: flex; justify-content: space-between; align-items: center;
+            pointer-events: none;
+        }
+        .top-nav > * { pointer-events: auto; }
+        .nav-left, .nav-right { display: flex; gap: 8px; align-items: center; }
+
+        .btn-top {
+            background: var(--ios-glass); color: #fff; border: 0.5px solid var(--ios-border);
+            padding: 8px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3); cursor: pointer; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .btn-top:active { transform: scale(0.92); opacity: 0.8; }
+        .btn-icon { width: 42px; height: 42px; padding: 0; border-radius: 50%; }
+        .btn-rekap { background: rgba(10, 132, 255, 0.15); border: 0.5px solid rgba(10, 132, 255, 0.3); color: var(--ios-blue); }
+        .btn-flash.active {
+            background: rgba(255, 214, 10, 0.15) !important;
+            border-color: rgba(255, 214, 10, 0.4) !important;
+            color: #ffd60a !important;
+        }
+
+        #photo-preview {
+            position: absolute; width: auto; height: 100%; aspect-ratio: 3/4;
+            object-fit: cover; display: none; z-index: 5; border-radius: 0 0 35px 35px;
+        }
+
+        #ui-panel {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            padding: 20px 20px 30px 20px; background: var(--ios-glass-heavy);
+            backdrop-filter: blur(40px) saturate(200%); -webkit-backdrop-filter: blur(40px) saturate(200%);
+            border-top: 1px solid rgba(255,255,255,0.08); border-radius: 32px 32px 0 0;
+            z-index: 10; box-shadow: 0 -20px 50px rgba(0,0,0,0.7);
+        }
+
+        .status-pill {
+            font-size: 12px; background: rgba(255,255,255,0.05); padding: 6px 16px; border-radius: 20px;
+            display: inline-block; margin-bottom: 15px; color: rgba(255,255,255,0.6); font-weight: 600;
+            border: 0.5px solid rgba(255,255,255,0.05); text-transform: uppercase; letter-spacing: 1px;
+        }
+
+        .input-group { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 10px; 
+            margin-bottom: 16px; 
+            max-height: 500px;
+            opacity: 1;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease, margin-bottom 0.4s ease;
+        }
+        .input-group.collapsed {
+            max-height: 0;
+            opacity: 0;
+            margin-bottom: 0;
+            pointer-events: none;
+        }
+
+        .btn-toggle-inputs {
+            position: absolute;
+            top: 20px;
+            right: 24px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 0.5px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            z-index: 12;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .btn-toggle-inputs:active {
+            transform: scale(0.9);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        .btn-toggle-inputs.hidden-state {
+            background: rgba(10, 132, 255, 0.15);
+            border-color: rgba(10, 132, 255, 0.3);
+            color: var(--ios-blue);
+        }
+
+        .input-row { 
+            display: grid; 
+            grid-template-columns: 2.2fr 1.1fr; 
+            gap: 10px; 
+            width: 100%; 
+        }
+
+        .input-icon-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+        .input-icon-wrapper svg {
+            position: absolute;
+            left: 14px;
+            width: 18px;
+            height: 18px;
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.45);
+            stroke-width: 1.75;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            pointer-events: none;
+            transition: stroke 0.3s ease, transform 0.3s ease;
+        }
+        .input-icon-wrapper input { padding-left: 42px; }
+        .input-icon-wrapper input:focus + svg { stroke: var(--ios-blue); transform: scale(1.05); }
+
+        input {
+            width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px; padding: 12px 14px; color: #fff; font-size: 15px; font-weight: 500;
+            outline: none; transition: all 0.3s ease; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+        }
+        input::placeholder { color: rgba(255, 255, 255, 0.3); font-weight: 400; }
+        input:focus { background: rgba(10, 132, 255, 0.05); border-color: var(--ios-blue); box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.15), inset 0 2px 5px rgba(0,0,0,0.2); }
+
+        .btn {
+            width: 100%; padding: 13px 18px; border: none; border-radius: 15px; display: flex; align-items: center; justify-content: center;
+            font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); text-align: center;
+        }
+        .btn:active { transform: scale(0.95); }
+        .btn-capture { background: #fff; color: #000; box-shadow: 0 8px 16px rgba(255,255,255,0.15); }
+        .btn-share { background: linear-gradient(135deg, #0a84ff, #005bb5); color: #fff; margin-bottom: 10px; box-shadow: 0 8px 16px var(--ios-blue-glow); }
+        .btn-next { background: transparent; color: #fff; border: 1px solid var(--ios-border); backdrop-filter: blur(10px); }
+
+        #action-area { display: none; flex-direction: column; }
+        canvas { display: none; }
+
+        #flash { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: white; opacity: 0; z-index: 20; pointer-events: none; }
+        .flash-anim { animation: flashEffect 0.4s ease-out; }
+        @keyframes flashEffect { 0% { opacity: 0.9; } 100% { opacity: 0; } }
+
+        .overlay-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            display: none; align-items: center; justify-content: center; z-index: 10000;
+            opacity: 0; transition: opacity 0.4s ease;
+        }
+        .overlay-screen.show { display: flex; opacity: 1; }
+        
+        .ios-modal {
+            background: rgba(30, 30, 35, 0.85); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 32px; padding: 30px 24px; width: 88%; max-width: 360px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.1); text-align: center;
+            transform: scale(0.9) translateY(20px); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+        }
+        .overlay-screen.show .ios-modal { transform: scale(1) translateY(0); }
+        .ios-modal h3 { margin: 0 0 10px 0; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+        .ios-modal p { margin: 0 0 24px 0; font-size: 15px; color: rgba(255,255,255,0.6); line-height: 1.4; }
+        
+        .modal-actions { display: flex; gap: 14px; margin-top: 24px; }
+        .btn-modal {
+            flex: 1; padding: 16px; border: none; border-radius: 16px; display: flex; align-items: center; justify-content: center;
+            font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s;
+        }
+        .btn-modal:active { transform: scale(0.93); }
+        .btn-cancel { background: rgba(255,255,255,0.08); color: #fff; }
+        .btn-confirm { background: var(--ios-blue); color: #fff; box-shadow: 0 8px 15px var(--ios-blue-glow); }
+        .btn-modal:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .slide-panel {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 5000; display: none; flex-direction: column;
+            transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .slide-panel.show { transform: translateX(0); }
+        
+        .panel-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 24px 20px; padding-top: 45px; background: rgba(15, 15, 18, 0.8);
+            backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+            border-bottom: 1px solid rgba(255,255,255,0.05); z-index: 2;
+        }
+        .panel-header h3 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+        .panel-header button {
+            background: transparent; border: none; color: var(--ios-blue); display: flex; align-items: center;
+            font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s;
+        }
+        .panel-header button:active { opacity: 0.6; }
+        
+        .list-container { flex: 1; overflow-y: auto; padding: 20px; background: radial-gradient(circle at top right, #111, #000); }
+        .list-item {
+            background: linear-gradient(145deg, rgba(30,30,35,0.6), rgba(20,20,25,0.6));
+            border-radius: 20px; padding: 18px; margin-bottom: 16px; 
+            border: 1px solid rgba(255,255,255,0.05);
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2); backdrop-filter: blur(10px);
+        }
+        .list-item-info { flex: 1; }
+        .list-item-info h4 { margin: 0 0 6px 0; font-size: 17px; font-weight: 600; display: flex; align-items: center; }
+        .list-item-info p { margin: 0; font-size: 12px; color: rgba(255,255,255,0.5); display: flex; align-items: center; }
+        
+        .list-item-actions { display: flex; align-items: center; gap: 10px; }
+        .btn-item-normal {
+            background: rgba(255,255,255,0.1); border: none; color: #fff;
+            padding: 10px 18px; border-radius: 14px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s;
+        }
+        .btn-item-normal:active { transform: scale(0.9); background: rgba(255,255,255,0.2); }
+        .btn-item-danger {
+            background: rgba(255, 69, 58, 0.1); border: 1px solid rgba(255, 69, 58, 0.2); color: var(--ios-red);
+            padding: 10px 14px; border-radius: 14px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s;
+        }
+        .btn-item-danger:active { transform: scale(0.9); }
+        .btn-item-danger:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        #detail-content { flex: 1; display: flex; flex-direction: column; background: #050505; overflow: hidden; }
+        #detail-img { flex: 1; width: 100%; object-fit: contain; padding: 10px; }
+        .detail-actions { padding: 24px; background: var(--ios-glass-heavy); border-top: 1px solid rgba(255,255,255,0.05); backdrop-filter: blur(30px); }
+
+        .rekap-info { margin-bottom: 24px; background: rgba(255,255,255,0.03); padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); box-shadow: inset 0 2px 10px rgba(0,0,0,0.2); }
+        .rekap-info p { margin: 6px 0; font-size: 14px; color: #ccc; display: flex; align-items: center; }
+        .rekap-info b { color: #fff; font-size: 15px; margin-left: 5px; }
+        .rekap-list-container {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 20px;
+            padding: 8px 16px;
+            margin-top: 15px;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.15);
+        }
+        .rekap-item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .rekap-item-row:last-child {
+            border-bottom: none;
+        }
+        .rekap-item-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #fff;
+        }
+        .rekap-item-price {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--ios-green);
+        }
+        .rekap-item-unit {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+            font-weight: 500;
+        }
+
+        #admin-panel { z-index: 6000; }
+        .admin-search-area { padding: 20px 20px 10px 20px; background: rgba(15, 15, 18, 0.8); backdrop-filter: blur(30px); border-bottom: 1px solid rgba(255,255,255,0.05); z-index: 2; }
+        
+        .admin-card {
+            background: linear-gradient(145deg, rgba(35,35,40,0.85), rgba(20,20,25,0.95));
+            border: 1px solid rgba(255,255,255,0.06); box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+            border-radius: 24px; padding: 20px; margin-bottom: 16px; position: relative; overflow: hidden;
+        }
+        .admin-card::before {
+            content: ''; position: absolute; top: -50px; right: -50px; width: 150px; height: 150px;
+            background: radial-gradient(circle, rgba(10,132,255,0.15) 0%, transparent 70%); border-radius: 50%; pointer-events: none;
+        }
+        .admin-card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px; }
+        .admin-card-head b { font-size: 17px; color: #fff; display: flex; align-items: center; gap: 8px; }
+        .admin-card-head span { color: var(--ios-green); font-weight: 700; font-size: 15px; background: rgba(48, 209, 88, 0.1); padding: 4px 10px; border-radius: 10px; }
+        .admin-card-body p { margin: 6px 0; font-size: 12px; color: rgba(255,255,255,0.55); display: flex; align-items: center; gap: 8px; font-weight: 500; }
+
+        #ios-alert {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+            z-index: 10005; justify-content: center; align-items: center; backdrop-filter: blur(10px);
+            opacity: 0; transition: opacity 0.3s ease;
+        }
+        #ios-alert.show { display: flex; opacity: 1; }
+        .alert-box {
+            background: rgba(30, 30, 35, 0.9); backdrop-filter: blur(25px);
+            border-radius: 20px; width: 280px; text-align: center; border: 1px solid rgba(255,255,255,0.1);
+            transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.17, 0.89, 0.32, 1.2); box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+        #ios-alert.show .alert-box { transform: scale(1); }
+        .alert-content { padding: 24px; }
+        .alert-btn {
+            width: 100%; padding: 16px; background: transparent; border: none;
+            border-top: 1px solid rgba(255,255,255,0.08); color: var(--ios-blue);
+            font-size: 17px; font-weight: 600; cursor: pointer; transition: background 0.2s; border-radius: 0 0 20px 20px;
+        }
+        .alert-btn:active { background: rgba(255,255,255,0.05); }
+
+        /* Styles for Interactive Price Trend Chart */
+        #chart-panel {
+            z-index: 6500;
+        }
+        .chart-card {
+            background: linear-gradient(145deg, rgba(30,30,35,0.7), rgba(15,15,20,0.8));
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 24px;
+            padding: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+            position: relative;
+        }
+        .chart-svg-wrapper {
+            position: relative;
+            width: 100%;
+            height: 220px;
+            margin-top: 10px;
+        }
+        .chart-tooltip-box {
+            position: absolute;
+            background: rgba(15, 15, 20, 0.95);
+            border: 1px solid var(--ios-blue);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6), 0 0 15px rgba(10, 132, 255, 0.2);
+            border-radius: 12px;
+            padding: 12px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            z-index: 10;
+            width: max-content;
+            max-width: 260px;
+            transform: translate(-50%, -100%) scale(0.95);
+        }
+        .chart-tooltip-box.show {
+            opacity: 1;
+            transform: translate(-50%, -100%) scale(1);
+        }
+        .chart-tooltip-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+        .chart-tooltip-price {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--ios-green);
+            margin-bottom: 4px;
+        }
+        .chart-tooltip-desc {
+            font-size: 11px;
+            color: rgba(255,255,255,0.6);
+            line-height: 1.3;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .metric-mini-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 12px 8px;
+            text-align: center;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.15);
+        }
+        .metric-mini-card span {
+            font-size: 10px;
+            color: rgba(255,255,255,0.45);
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .metric-mini-card b {
+            font-size: 12px;
+            color: #fff;
+            display: block;
+        }
+        .metric-mini-card.tertinggi b {
+            color: var(--ios-red);
+        }
+        .metric-mini-card.terendah b {
+            color: var(--ios-green);
+        }
+        .metric-mini-card.terbaru b {
+            color: var(--ios-blue);
+        }
+        .chart-timeline-header {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .timeline-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.04);
+            border-radius: 18px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            transition: all 0.2s;
+        }
+        .timeline-card:active {
+            background: rgba(255,255,255,0.05);
+        }
+        .timeline-left {
+            flex: 1;
+            padding-right: 12px;
+        }
+        .timeline-right {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+        }
+        .timeline-date {
+            font-size: 11px;
+            color: rgba(255,255,255,0.4);
+            font-weight: 600;
+            margin-top: 4px;
+        }
+        .timeline-loc {
+            font-size: 12px;
+            color: rgba(255,255,255,0.7);
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .timeline-petugas {
+            font-size: 11px;
+            color: rgba(255,255,255,0.5);
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .timeline-price {
+            font-size: 15px;
+            font-weight: 800;
+            color: #fff;
+        }
+        .trend-indicator {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .trend-up {
+            background: rgba(255, 69, 58, 0.12);
+            color: var(--ios-red);
+        }
+        .trend-down {
+            background: rgba(48, 209, 88, 0.12);
+            color: var(--ios-green);
+        }
+        .trend-stable {
+            background: rgba(255, 255, 255, 0.08);
+            color: rgba(255,255,255,0.5);
+        }
+        .chart-empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: rgba(255,255,255,0.4);
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .icon-spin {
+            animation: spin 1s linear infinite;
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <div id="viewport">
+        <video id="cam" autoplay playsinline></video>
+        <img id="photo-preview">
+        <div id="flash"></div>
+        
+        <div class="top-nav">
+            <div class="nav-left">
+                <button class="btn-top btn-icon" onclick="cekAdminAuth()" title="Admin Data Global">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="9" rx="1.5"></rect>
+                        <rect x="14" y="3" width="7" height="5" rx="1.5"></rect>
+                        <rect x="14" y="12" width="7" height="9" rx="1.5"></rect>
+                        <rect x="3" y="16" width="7" height="5" rx="1.5"></rect>
+                    </svg>
+                </button>
+                <button id="toggle-flash-btn" class="btn-top btn-icon" onclick="toggleFlash()" title="Aktifkan/Matikan Flash">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="nav-right">
+                <button class="btn-top btn-rekap" onclick="openRekap()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="3" y1="9" x2="21" y2="9"></line>
+                        <line x1="9" y1="21" x2="9" y2="9"></line>
+                    </svg>
+                    Rekap
+                </button>
+                <button class="btn-top btn-riwayat" onclick="openHistory()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    Riwayat
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="ui-panel">
+        <button id="toggle-inputs-btn" class="btn-toggle-inputs" onclick="toggleInputFields()" title="Sembunyikan/Tampilkan Input">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+        </button>
+        <center><div class="status-pill" id="status">Kamera Tersedia • GPS Aktif</div></center>
+        
+        <div class="input-group">
+            <div class="input-icon-wrapper">
+                <input type="text" id="lokasi" placeholder="Lokasi Survei (Otomatis/Manual)">
+                <svg viewBox="0 0 24 24">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+            </div>
+            
+            <div class="input-icon-wrapper">
+                <input type="text" id="barang" list="daftar-barang" placeholder="Nama Barang">
+                <svg viewBox="0 0 24 24">
+                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <path d="M16 10a4 4 0 0 1-8 0"></path>
+                </svg>
+            </div>
+            <datalist id="daftar-barang"></datalist>
+            
+            <div class="input-row">
+                <div class="input-icon-wrapper">
+                    <input type="text" inputmode="numeric" id="harga" placeholder="Harga" oninput="formatRupiah(this)">
+                    <svg viewBox="0 0 24 24">
+                        <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+                        <circle cx="12" cy="12" r="2"></circle>
+                        <path d="M6 12h.01M18 12h.01"></path>
+                    </svg>
+                </div>
+                <div class="input-icon-wrapper">
+                    <input type="text" id="satuan" placeholder="Satuan">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn btn-capture" id="snap-btn" onclick="capture()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+            </svg> Jepret Foto
+        </button>
+
+        <div id="action-area">
+            <button class="btn btn-share" onclick="shareToWA()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
+                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                </svg> Kirim ke WhatsApp
+            </button>
+            <button class="btn btn-next" onclick="reset()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="16"></line>
+                    <line x1="8" y1="12" x2="16" y2="12"></line>
+                </svg> Lanjut Barang Baru
+            </button>
+        </div>
+    </div>
+
+    <div id="petugas-modal-overlay" class="overlay-screen">
+        <div class="ios-modal">
+            <h3>Siapa Namamu?</h3>
+            <p>Isi nama lengkap untuk pendataan laporan.</p>
+            <div class="input-icon-wrapper" style="margin-bottom: 20px;">
+                <input type="text" id="input-petugas-name" placeholder="Nama Lengkap" style="text-align: left;">
+                <svg viewBox="0 0 24 24">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+            </div>
+            <button class="btn btn-capture" style="width: 100%;" onclick="savePetugasName()">Simpan</button>
+        </div>
+    </div>
+
+    <div id="admin-auth-overlay" class="overlay-screen">
+        <div class="ios-modal">
+            <h3>Login Admin</h3>
+            <p>Masukkan password untuk melihat data Global dari satelit.</p>
+            <div class="input-icon-wrapper" style="margin-bottom: 20px;">
+                <input type="password" id="input-admin-pass" placeholder="Password" style="text-align: left;">
+                <svg viewBox="0 0 24 24">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-modal btn-cancel" onclick="closeAdminAuth()">Batal</button>
+                <button class="btn-modal btn-confirm" id="btn-login-admin" onclick="prosesLoginAdmin()">Login</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="ios-modal-overlay" class="overlay-screen">
+        <div class="ios-modal">
+            <h3>Data Belum Lengkap</h3>
+            <p>Isi barang & harganya dulu ya sebelum lanjut foto.</p>
+            <div class="input-group" style="margin-bottom: 0;">
+                <div class="input-icon-wrapper">
+                    <input type="text" id="modal-barang" placeholder="Nama Barang">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <path d="M16 10a4 4 0 0 1-8 0"></path>
+                    </svg>
+                </div>
+                <div class="input-row">
+                    <div class="input-icon-wrapper" style="flex: 1;">
+                        <input type="text" inputmode="numeric" id="modal-harga" placeholder="Harga" oninput="formatRupiah(this)">
+                        <svg viewBox="0 0 24 24">
+                            <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+                            <circle cx="12" cy="12" r="2"></circle>
+                            <path d="M6 12h.01M18 12h.01"></path>
+                        </svg>
+                    </div>
+                    <div class="input-icon-wrapper" style="flex: 1;">
+                        <input type="text" id="modal-satuan" placeholder="Satuan">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-modal btn-cancel" onclick="closeModal()">Batal</button>
+                <button class="btn-modal btn-confirm" onclick="confirmModal()">Lanjut Jepret</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="ios-confirm-overlay" class="overlay-screen" style="z-index: 10002;">
+        <div class="ios-modal">
+            <h3 id="confirm-title">Peringatan</h3>
+            <p id="confirm-msg">Apakah Anda yakin?</p>
+            <div class="modal-actions">
+                <button class="btn-modal btn-cancel" onclick="closeConfirm()">Batal</button>
+                <button class="btn-modal btn-confirm" id="confirm-btn-ok" style="background: var(--ios-red); box-shadow: 0 8px 15px rgba(255, 69, 58, 0.4);">Yakin</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="admin-panel" class="slide-panel">
+        <div class="panel-header">
+            <h3>Data Survei Global</h3>
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <button onclick="logoutAdmin()" style="color: var(--ios-red); font-size: 15px;">Logout</button>
+                <button onclick="closeAdminPanel()">Tutup</button>
+            </div>
+        </div>
+        <div class="admin-search-area" style="padding-bottom: 16px;">
+            <div class="input-group" style="margin-bottom:0;">
+                <div class="input-icon-wrapper" style="margin-bottom: 12px;">
+                    <input type="text" id="search-petugas" placeholder="Cari Nama Petugas..." onkeyup="renderAdminData()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </div>
+                <div class="input-icon-wrapper" style="margin-bottom: 12px;">
+                    <input type="text" id="search-barang" placeholder="Cari Nama Barang..." onkeyup="renderAdminData()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <path d="M16 10a4 4 0 0 1-8 0"></path>
+                    </svg>
+                </div>
+            </div>
+            
+            <!-- Segmented Control untuk Filter Tanggal -->
+            <div style="display: flex; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 3px; margin-bottom: 12px; gap: 2px;">
+                <button id="btn-filter-all" onclick="setAdminFilterMode('all')" style="flex: 1; background: var(--ios-blue); color: #fff; border: none; padding: 8px; border-radius: 9px; font-size: 11px; font-weight: 700; cursor: pointer; transition: 0.2s;">Semua Waktu</button>
+                <button id="btn-filter-month" onclick="setAdminFilterMode('month')" style="flex: 1; background: transparent; color: rgba(255,255,255,0.5); border: none; padding: 8px; border-radius: 9px; font-size: 11px; font-weight: 700; cursor: pointer; transition: 0.2s;">Per Bulan</button>
+                <button id="btn-filter-range" onclick="setAdminFilterMode('range')" style="flex: 1; background: transparent; color: rgba(255,255,255,0.5); border: none; padding: 8px; border-radius: 9px; font-size: 11px; font-weight: 700; cursor: pointer; transition: 0.2s;">Rentang Tgl</button>
+            </div>
+            
+            <!-- Filter Bulan -->
+            <div id="wrapper-filter-month" style="display: none; margin-bottom: 12px;">
+                <div class="input-icon-wrapper">
+                    <input type="month" id="filter-admin-month" onchange="renderAdminData()" style="text-align: left; color: #fff;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                </div>
+            </div>
+ 
+            <!-- Filter Rentang Tanggal -->
+            <div id="wrapper-filter-range" style="display: none; margin-bottom: 12px; gap: 8px; align-items: center;">
+                <div class="input-icon-wrapper" style="flex: 1;">
+                    <input type="date" id="filter-admin-start" onchange="renderAdminData()" style="text-align: left; color: #fff; font-size: 11px; padding: 10px 10px 10px 34px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                </div>
+                <div style="color: rgba(255,255,255,0.4); font-size: 11px; font-weight: 700; flex-shrink: 0;">s/d</div>
+                <div class="input-icon-wrapper" style="flex: 1;">
+                    <input type="date" id="filter-admin-end" onchange="renderAdminData()" style="text-align: left; color: #fff; font-size: 11px; padding: 10px 10px 10px 34px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                </div>
+            </div>
+ 
+            <!-- Tombol Aksi -->
+            <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                <button onclick="openChartPanelForSearch()" style="flex: 1.2; background: linear-gradient(135deg, #0a84ff, #005bb5); color: #fff; border: none; padding: 12px; border-radius: 12px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 6px 12px var(--ios-blue-glow);">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                    Tren Grafik
+                </button>
+                <button onclick="shareGlobalData()" style="flex: 1; background: rgba(10,132,255,0.12); color: var(--ios-blue); border: 1px solid rgba(10,132,255,0.25); padding: 12px; border-radius: 12px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                    Bagi
+                </button>
+                <button onclick="copyGlobalData()" style="flex: 1; background: rgba(48,209,88,0.12); color: var(--ios-green); border: 1px solid rgba(48,209,88,0.25); padding: 12px; border-radius: 12px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+                    Salin
+                </button>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button onclick="exportGlobalPDF()" style="flex: 1; background: rgba(255,69,58,0.12); color: var(--ios-red); border: 1px solid rgba(255,69,58,0.25); padding: 10px; border-radius: 12px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    PDF A4
+                </button>
+                <button onclick="exportGlobalExcel()" style="flex: 1; background: rgba(48,209,88,0.12); color: var(--ios-green); border: 1px solid rgba(48,209,88,0.25); padding: 10px; border-radius: 12px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line><line x1="17" y1="3" x2="17" y2="21"></line><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line></svg>
+                    Excel
+                </button>
+            </div>
+        </div>
+        <div class="list-container" id="admin-list-container">
+            <div style="text-align:center; margin-top:50px; color:rgba(255,255,255,0.5); font-weight: 500; display:flex; align-items:center; justify-content:center;" id="admin-loading-text">
+                Sedang memuat data dari server... 
+                <svg class="icon-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px; display: inline-block; vertical-align: middle;">
+                    <line x1="12" y1="2" x2="12" y2="6"></line>
+                    <line x1="12" y1="18" x2="12" y2="22"></line>
+                    <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+                    <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+                    <line x1="2" y1="12" x2="6" y2="12"></line>
+                    <line x1="18" y1="12" x2="22" y2="12"></line>
+                    <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+                    <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+                </svg>
+            </div>
+        </div>
+    </div>
+ 
+    <div id="chart-panel" class="slide-panel">
+        <div class="panel-header">
+            <button onclick="closeChartPanel()" style="display: flex; align-items: center; gap: 4px; background: transparent; border: none; color: var(--ios-blue); font-size: 16px; font-weight: 600; cursor: pointer;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                Kembali
+            </button>
+            <h3 id="chart-header-title">Tren Grafik Harga</h3>
+            <div style="width: 60px;"></div>
+        </div>
+        <div class="list-container" style="padding: 20px 16px; display: flex; flex-direction: column;" id="chart-panel-content">
+            <!-- Dynamic Chart Card -->
+            <div class="chart-card">
+                <div style="font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 4px;" id="chart-item-name">-</div>
+                <div style="font-size: 12px; color: rgba(255,255,255,0.5); display: flex; align-items: center; gap: 4px; margin-bottom: 12px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color: var(--ios-blue); display: inline-block; vertical-align: middle;">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    <span id="chart-item-latest-location">Lokasi Terbaru</span>
+                </div>
+                
+                <!-- Metrics -->
+                <div class="metrics-grid">
+                    <div class="metric-mini-card terendah">
+                        <span>Terendah</span>
+                        <b id="chart-metric-min">Rp 0</b>
+                    </div>
+                    <div class="metric-mini-card terbaru">
+                        <span>Terbaru</span>
+                        <b id="chart-metric-latest">Rp 0</b>
+                    </div>
+                    <div class="metric-mini-card tertinggi">
+                        <span>Tertinggi</span>
+                        <b id="chart-metric-max">Rp 0</b>
+                    </div>
+                </div>
+
+                <!-- SVG Plot Area -->
+                <div class="chart-svg-wrapper" id="chart-svg-container">
+                    <!-- Tooltip Box inside chart -->
+                    <div id="chart-tooltip" class="chart-tooltip-box">
+                        <div class="chart-tooltip-title" id="tooltip-date">Senin, 09 Mar</div>
+                        <div class="chart-tooltip-price" id="tooltip-price">Rp 15.000</div>
+                        <div class="chart-tooltip-desc" id="tooltip-desc">Lokasi & Petugas</div>
+                    </div>
+                    <svg id="chart-svg" width="100%" height="100%" style="overflow: visible;"></svg>
+                </div>
+                
+                <div style="text-align: center; font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 10px;">
+                    💡 Ketuk titik pada grafik untuk melihat detail info survei
+                </div>
+            </div>
+
+            <!-- Historical Timeline List -->
+            <div class="chart-timeline-header">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color: var(--ios-blue);"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                Riwayat Perubahan Harga
+            </div>
+            <div id="chart-timeline-container" style="flex: 1;">
+                <!-- Timeline cards rendered dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <div id="history-modal" class="slide-panel">
+        <div class="panel-header">
+            <h3>Riwayat Saya</h3>
+            <button onclick="closeHistory()">Selesai</button>
+        </div>
+        <div class="list-container" id="history-list"></div>
+    </div>
+
+    <div id="detail-modal" class="slide-panel" style="z-index: 5100;">
+        <div class="panel-header">
+            <button onclick="closeDetail()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: text-bottom; margin-right: 4px;"><polyline points="15 18 9 12 15 6"></polyline></svg> Kembali
+            </button>
+            <h3 id="detail-title">Detail Barang</h3>
+            <div style="width: 60px;"></div> 
+        </div>
+        <div id="detail-content">
+            <img id="detail-img" src="">
+            <div class="detail-actions">
+                <button class="btn btn-share" style="width: 100%; margin:0;" onclick="shareHistoryItem()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg> Kirim ke WhatsApp
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="rekap-modal" class="slide-panel">
+        <div class="panel-header">
+            <h3>Rekap Saya</h3>
+            <button onclick="closeRekap()">Tutup</button>
+        </div>
+        <div class="list-container">
+            <div class="rekap-info">
+                <p>Nama Petugas : <b id="nama-petugas-rekap"></b></p>
+                <p>Tgl : <b id="rekap-tgl"></b></p>
+                <p style="font-size: 12px; margin-top: 12px; color: var(--ios-blue); cursor: pointer; font-weight: 600;" onclick="gantiNamaPetugas()">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; display: inline-block; vertical-align: middle;"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path><path d="m15 5 4 4"></path></svg> Ketuk untuk ganti nama petugas
+                </p>
+            </div>
+            <div class="rekap-list-container" id="rekap-list-container"></div>
+        </div>
+        <div class="detail-actions">
+            <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+                <button class="btn btn-share" onclick="shareRekap()" style="flex: 1; margin: 0; background: linear-gradient(135deg, #0a84ff, #005bb5); box-shadow: 0 8px 16px var(--ios-blue-glow);">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg> Bagi Laporan
+                </button>
+                <button class="btn" onclick="copyRekapWA()" style="flex: 1; margin: 0; background: linear-gradient(135deg, #30d158, #24a144); color: #fff; box-shadow: 0 8px 16px rgba(48, 209, 88, 0.3);">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg> Salin Teks WA
+                </button>
+            </div>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <button class="btn" onclick="exportRekapPDF()" style="flex: 1; margin: 0; background: rgba(255, 69, 58, 0.15); border: 1px solid rgba(255, 69, 58, 0.35); color: #ff453a; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; padding: 12px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> PDF A4
+                </button>
+                <button class="btn" onclick="exportRekapExcel()" style="flex: 1; margin: 0; background: rgba(48, 209, 88, 0.15); border: 1px solid rgba(48, 209, 88, 0.35); color: #30d158; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; padding: 12px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line><line x1="17" y1="3" x2="17" y2="21"></line><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line></svg> Excel (XLSX)
+                </button>
+            </div>
+            <button class="btn btn-next" style="width:100%; border-color: rgba(255, 69, 58, 0.4); color: var(--ios-red);" onclick="bersihkanSesi()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg> Bersihkan Sesi (Mulai Baru)
+            </button>
+        </div>
+    </div>
+
+    <div id="ios-alert">
+        <div class="alert-box">
+            <div class="alert-content">
+                <b id="alert-title" style="font-size:18px; color:#fff; letter-spacing: -0.5px;"></b><br>
+                <span id="alert-msg" style="font-size:14px; color:rgba(255,255,255,0.6); display:block; margin-top:8px; line-height: 1.4;"></span>
+            </div>
+            <button class="alert-btn" onclick="closeAlert()">Oke</button>
+        </div>
+    </div>
+
+    <canvas id="render-canvas"></canvas>
+
+    <script>
+        // =========================================================
+        // URL GOOGLE APPS SCRIPT (LINK ASLIMU SUDAH MASUK SINI)
+        // =========================================================
+        const gasUrl = "https://script.google.com/macros/s/AKfycbzV_xTp7D7w1eMGmIWw7RmTbvWf5D5p3oKwtsmp50W--70iXvCWD1Whd3UHn4DE-jVwMA/exec"; 
+
+        // =========================================================
+        // DATALIST BARANG (PENYIMPANAN OTOMATIS)
+        // =========================================================
+        const defaultBarang = [
+            "Beras", "Beras Cap Dua Lele", "Beras Ketan Hitam", "Minyak Goreng Bimoli", "Minyak Goreng Sanjaya", "Minyak Goreng Sunco",
+            "Gula Pasir", "Gula Merah", "Tepung Terigu", "Tepung Terigu Cap Segitiga Biru", "Tepung Sajiku", "Tepung Tapioka / Cap Tani",
+            "Tepung Maizena", "Tepung Beras / Rose Brand", "Mentega", "Margarine Blue Band", "Bawang Merah", "Bawang Putih",
+            "Bawang Bombay", "Cabe Rawit", "Cabe Merah", "Cabe Hijau", "Daun Bawang", "Seledri", "Daun Salam", "Daun Jeruk / Daun Jeruk Muda",
+            "Daun Pandan", "Daun Kari", "Jahe", "Lengkuas (Utuh & Parut)", "Serai (Kg / Ikat)", "Kencur", "Kunyit (Utuh & Giling)",
+            "Asam Jawa", "Asam Sunti", "Merica Bubuk (100 gr) / Ladaku", "Ketumbar Bubuk (100 gr / Desaku 12,5 gr)", "Kunyit Bubuk (100 gr)",
+            "Buah Pala", "Rempah Bunga Lawang", "Rempah Kapulaga", "Rempah Kayu Manis", "Rempah Cengkeh", "Kemiri", "Wijen", "Bawang Goreng",
+            "Garam / Garam Kiloan / Garam Dolpin", "Kaldu Jamur (Totole 40 gr)", "Kaldu Ayam (Royco)", "Kecap Manis Cap Bangau (Biasa / 700 ml)",
+            "Kecap Sedap (725 gr)", "Kecap Asin / Kecap Asin Singa", "Saus Sambal ABC (Biasa / 135 gr / Sachet)", "Saus Tomat ABC",
+            "Saus Sambal Sasa (Sachet isi 24/25 pcs)", "Saus Tomat Sasa", "Saori Saus Tiram (Biasa / 270 ml / 1 Lt)", "Saus Barbeque",
+            "Mayones", "Terasi", "Tauco", "Bumbu Marinasi Desaku (Biasa / Kunyit 15 gr)", "Cuka (Biasa / 650 ml)", "Soda Kue / Baking Soda",
+            "Bumbu Mie Aceh", "Bumbu Giling Ayam", "Bumbu Giling Ikan", "Bumbu Giling Nasi Goreng", "Bumbu Giling Merah Kari / Giling Kari",
+            "Bumbu Giling Rendang", "Bumbu Giling Semur", "Bumbu Giling Masak Merah", "Bumbu Giling Tumis Aceh / Tumis Udang Aceh",
+            "Bumbu Giling Mie", "Bumbu Giling Sop", "Bumbu Ungkep Ayam", "Bumbu Ayam Lengkuas", "Bumbu Pecal", "Bumbu Keumamah",
+            "Cabe Merah Giling", "Cabe Merah Kering", "Kentang / Kentang Frozen", "Wortel", "Buncis", "Kacang Panjang", "Tomat",
+            "Selada", "Jagung Manis", "Sawi Hijau / Sawi Hijau Manis", "Sawi Putih", "Kol / Bunga Kol", "Pakcoy", "Timun", "Tauge",
+            "Labu Siam", "Ubi Jalar", "Baby Corn", "Ayam", "Daging Sapi", "Ikan Lele", "Ikan Kembung", "Ikan Tuna", "Udang", "Teri",
+            "Telur (Ayam & Puyuh)", "Tahu / Tahu Walik / Tahu Bakso", "Tempe / Tempe Kiloan", "Bakso Ikan", "Jeruk Manis", "Jeruk Nipis",
+            "Pisang", "Semangka / Semangka Non Biji", "Melon / Melon Super", "Apel", "Buah Pir Madu", "Anggur Merah", "Anggur Hijau",
+            "Kelengkeng", "Duku", "Langsat", "Salak / Salak Pondoh", "Kurma Sukari", "Buah Naga", "Matoa", "Buah Kelapa", "Mie Kiloan",
+            "Mie Lidi Cap Rumoh Adat", "Mie Telur 3 Ayam", "Mie Gaga Telur", "Mie Hun (isi 40)", "Sagu Mutiara", "Sagu Mata Ikan",
+            "Santan Kelapa / Santan Kara", "Agar Agar Sparrow Brand", "Puding Susu (isi 145 gr)", "Puding Nutrijel (Rasa Strawberry)",
+            "Nata de Coco (isi 500 gr)", "Selasih", "Susu Frisian Flag UHT (115 ml / 225 ml)", "Susu Frisian Flag Kental Manis",
+            "Susu Greenfields (950 ml)", "Susu Clevo UHT (115 ml)", "Sirup Kurnia", "Keju Cheddar / Keju Slice (isi 12 lembar)",
+            "Selai Serikaya", "Roti Tawar (isi 14 / 16 lembar / Bantal)", "Roti Burger / Roti Burger Virgo (isi 24 pcs)",
+            "Roti Manis Wijen", "Roti Manis isi Kelapa", "Roti Kelapa", "Roti Coklat / Roti Pisang Coklat", "Roti Abon",
+            "Kue Bakpia / Bakpia Kacang", "Kue Kacang", "Kue Bhoi", "Kue Onde-onde isi Kelapa", "Kue Pizza (80 gr)", "Bolu Kukus",
+            "Bolu Susu", "Bolu Pisang", "Donat / Donat Bulat", "Donat Ceres (60 gr)", "Donat Paha Ayam (60 gr)",
+            "Kacang Tanah (Biasa / Tanpa Kulit Ari)", "Kacang Hijau", "Kacang Hijau Mete", "Kacang Panjang / Kacang Polo",
+            "Kacang Arab (15 gr / 25 gr)", "Kacang Kuning (15 gr / 25 gr)", "Kacang Madu", "Kacang Kulit Sangrai", "Kacang Atom",
+            "Kerupuk Merah Putih", "Keripik Tempe Sagu"
+        ];
+
+        // Ambil data barang yang pernah disimpan sebelumnya di HP ini
+        let daftarBarang = JSON.parse(localStorage.getItem('savedDaftarBarang')) || defaultBarang;
+
+        function renderDatalist() {
+            const datalist = document.getElementById("daftar-barang");
+            if (!datalist) return;
+            datalist.innerHTML = "";
+            daftarBarang.forEach(barang => {
+                const option = document.createElement("option");
+                option.value = barang;
+                datalist.appendChild(option);
+            });
+        }
+
+        function tambahBarangBaru() {
+            const inputBarang = document.getElementById("barang").value.trim();
+            // Kalau inputnya gak kosong & barangnya belum ada di list
+            if (inputBarang !== "" && !daftarBarang.includes(inputBarang)) {
+                daftarBarang.push(inputBarang);
+                localStorage.setItem('savedDaftarBarang', JSON.stringify(daftarBarang));
+                renderDatalist();
+            }
+        }
+
+        // =========================================================
+        // FUNGSI PERBAIKI FORMAT TANGGAL DARI SERVER
+        // =========================================================
+        function formatWaktuSatelit(rawTgl, rawJam) {
+            if (rawTgl === 'undefined' || rawTgl === 'null') rawTgl = undefined;
+            if (rawJam === 'undefined' || rawJam === 'null') rawJam = undefined;
+            if (!rawTgl && !rawJam) return "-";
+            let tglTampil = rawTgl || "-";
+            let jamTampil = rawJam || "";
+
+            try {
+                // Perbaiki Tanggal ISO -> Senin, 09 Maret 2026
+                if (typeof rawTgl === 'string' && rawTgl.includes("T") && rawTgl.includes("Z")) {
+                    let d = new Date(rawTgl);
+                    if (!isNaN(d)) {
+                        const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                        const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                        tglTampil = `${days[d.getDay()]}, ${d.getDate().toString().padStart(2, '0')} ${months[d.getMonth()]} ${d.getFullYear()}`;
+                    }
+                }
+                
+                // Perbaiki Jam ISO -> 10:30 Pagi
+                if (typeof rawJam === 'string' && rawJam.includes("T") && rawJam.includes("Z")) {
+                    let j = new Date(rawJam);
+                    if (!isNaN(j)) {
+                        let ket = "Malam";
+                        let hours = j.getHours();
+                        if (hours >= 5 && hours < 11) ket = "Pagi";
+                        else if (hours >= 11 && hours < 15) ket = "Siang";
+                        else if (hours >= 15 && hours < 19) ket = "Sore";
+                        
+                        jamTampil = hours.toString().padStart(2, '0') + ":" + j.getMinutes().toString().padStart(2, '0') + " " + ket;
+                    }
+                }
+            } catch(e) {
+                console.log("Format data waktu dibiarkan default");
+            }
+
+            if (tglTampil && jamTampil && tglTampil !== "-" && jamTampil !== "-") {
+                return `${tglTampil} • ${jamTampil}`;
+            }
+            return tglTampil || jamTampil || "-";
+        }
+
+        // =========================================================
+        // SISA FUNGSI JS ASLI KAMU
+        // =========================================================
+        let db;
+        let adminDataMaster = []; 
+        let adminFilterMode = 'all';
+
+        const video = document.getElementById('cam');
+        const canvas = document.getElementById('render-canvas');
+        const status = document.getElementById('status');
+        const preview = document.getElementById('photo-preview');
+        const snapBtn = document.getElementById('snap-btn');
+        let imageBlob = null;
+        let isCameraActive = false;
+        let currentStream = null;
+        let isFlashActive = false;
+
+        const request = indexedDB.open("SurveyDB", 1);
+        request.onupgradeneeded = (e) => {
+            db = e.target.result;
+            db.createObjectStore("surveys", { keyPath: "id" });
+        };
+        request.onsuccess = (e) => { db = e.target.result; };
+
+        async function startApp() {
+            initInputToggleState();
+            renderDatalist(); // Biar list barang langsung muncul pas aplikasi buka
+
+            // Ambil lokasi terakhir dari cache localStorage jika ada
+            const cachedLokasi = localStorage.getItem('mhy_last_lokasi');
+            if (cachedLokasi) {
+                document.getElementById('lokasi').value = cachedLokasi;
+            }
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment', width: {ideal: 1920}, height: {ideal: 1080} } 
+                });
+                video.srcObject = stream;
+                currentStream = stream;
+                status.innerText = "Kamera Aktif • Mencari GPS...";
+                isCameraActive = true;
+            } catch (e) {
+                status.innerText = "Kamera Ditolak / Mode Offline";
+            }
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(async (pos) => {
+                    const { latitude, longitude } = pos.coords;
+                    try {
+                        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+                        const data = await res.json();
+                        const parts = data.display_name.split(',');
+                        const namaLokasi = parts.slice(0, Math.min(parts.length, 3)).join(', ');
+                        
+                        document.getElementById('lokasi').value = namaLokasi;
+                        localStorage.setItem('mhy_last_lokasi', namaLokasi); // Simpan ke cache
+                        
+                        status.innerText = isCameraActive ? "Kamera & GPS Aktif" : "GPS OK (Kamera Mati)";
+                    } catch {
+                        const fallbackLokasi = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+                        document.getElementById('lokasi').value = fallbackLokasi;
+                        localStorage.setItem('mhy_last_lokasi', fallbackLokasi); // Simpan ke cache
+                        status.innerText = isCameraActive ? "Kamera & GPS Aktif" : "GPS OK (Kamera Mati)";
+                    }
+                }, () => {
+                    if (isCameraActive) {
+                        status.innerText = cachedLokasi ? "GPS Mati • Menggunakan Cache" : "GPS Off - Ketik Manual";
+                    }
+                });
+            }
+        }
+
+        function showAlert(t, m) { 
+            document.getElementById('alert-title').innerText = t; 
+            document.getElementById('alert-msg').innerText = m; 
+            document.getElementById('ios-alert').style.display = 'flex'; 
+            setTimeout(() => document.getElementById('ios-alert').classList.add('show'), 10);
+        }
+        function closeAlert() { 
+            document.getElementById('ios-alert').classList.remove('show'); 
+            setTimeout(() => document.getElementById('ios-alert').style.display = 'none', 300); 
+        }
+
+        let confirmCallback = null;
+        function showConfirm(title, msg, callback) {
+            document.getElementById('confirm-title').innerText = title;
+            document.getElementById('confirm-msg').innerText = msg;
+            confirmCallback = callback;
+            
+            document.getElementById('ios-confirm-overlay').style.display = 'flex';
+            setTimeout(() => document.getElementById('ios-confirm-overlay').classList.add('show'), 10);
+            
+            document.getElementById('confirm-btn-ok').onclick = function() {
+                closeConfirm();
+                if(confirmCallback) confirmCallback();
+            };
+        }
+        function closeConfirm() {
+            document.getElementById('ios-confirm-overlay').classList.remove('show');
+            setTimeout(() => document.getElementById('ios-confirm-overlay').style.display = 'none', 300);
+        }
+
+        function formatAngkaTitik(angka) {
+            if (!angka) return "0";
+            return angka.toString().replace(/[^0-9]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        function formatRupiah(input) {
+            let value = input.value.replace(/[^0-9]/g, '');
+            input.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        function getYahYuDateTime() {
+            const now = new Date();
+            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const fullMonths = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            const hours = now.getHours();
+            let ket = "Malam";
+            if (hours >= 5 && hours < 11) ket = "Pagi";
+            else if (hours >= 11 && hours < 15) ket = "Siang";
+            else if (hours >= 15 && hours < 19) ket = "Sore";
+
+            const timeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+            return `${days[now.getDay()]}, ${now.getDate().toString().padStart(2, '0')} ${fullMonths[now.getMonth()]} ${now.getFullYear()} • ${timeStr} ${ket}`;
+        }
+
+        function savePetugasName() {
+            let val = document.getElementById('input-petugas-name').value.trim();
+            if (!val) return showAlert("Perhatian", "Nama petugas wajib diisi agar laporan valid.");
+            
+            localStorage.setItem("mhy_petugas", val);
+            document.getElementById('petugas-modal-overlay').classList.remove('show');
+            setTimeout(() => {
+                document.getElementById('petugas-modal-overlay').style.display = 'none';
+            }, 400);
+        }
+
+        function gantiNamaPetugas() {
+            closeRekap();
+            setTimeout(() => {
+                document.getElementById('input-petugas-name').value = localStorage.getItem("mhy_petugas") || "";
+                document.getElementById('petugas-modal-overlay').style.display = 'flex';
+                setTimeout(() => document.getElementById('petugas-modal-overlay').classList.add('show'), 10);
+            }, 400);
+        }
+
+        function cekAdminAuth() {
+            const savedPass = localStorage.getItem('mhy_admin_pass');
+            if (savedPass) {
+                tarikDataAdmin(savedPass);
+            } else {
+                document.getElementById('input-admin-pass').value = "";
+                document.getElementById('admin-auth-overlay').style.display = 'flex';
+                setTimeout(() => document.getElementById('admin-auth-overlay').classList.add('show'), 10);
+            }
+        }
+        
+        function closeAdminAuth() {
+            document.getElementById('admin-auth-overlay').classList.remove('show');
+            setTimeout(() => document.getElementById('admin-auth-overlay').style.display = 'none', 300);
+            document.getElementById('btn-login-admin').innerText = "Login";
+        }
+        
+        function prosesLoginAdmin() {
+            const pass = document.getElementById('input-admin-pass').value;
+            if(!pass) return showAlert("Admin", "Masukkan sandi rahasia!");
+            tarikDataAdmin(pass, true);
+        }
+
+        function tarikDataAdmin(pass, isManual = false) {
+            if (isManual) {
+                document.getElementById('btn-login-admin').innerText = "Mengecek...";
+            } else {
+                document.getElementById('admin-panel').style.display = 'flex';
+                setTimeout(() => document.getElementById('admin-panel').classList.add('show'), 10);
+                document.getElementById('admin-list-container').innerHTML = `<div style="text-align:center; margin-top:50px; color:rgba(255,255,255,0.5); font-weight:500; display:flex; align-items:center; justify-content:center;">Menghubungkan ke satelit... <svg class="icon-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px;"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg></div>`;
+            }
+            
+            fetch(gasUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: "login_admin", password: pass })
+            }).then(r => r.json()).then(res => {
+                if(res.status === "sukses_admin") {
+                    localStorage.setItem('mhy_admin_pass', pass);
+                    if (isManual) closeAdminAuth();
+                    adminDataMaster = res.data;
+                    
+                    if (isManual) {
+                        document.getElementById('admin-panel').style.display = 'flex';
+                        setTimeout(() => document.getElementById('admin-panel').classList.add('show'), 10);
+                    }
+                    renderAdminData();
+                } else {
+                    if (isManual) {
+                        document.getElementById('btn-login-admin').innerText = "Login";
+                        showAlert("Gagal Akses", res.pesan);
+                    } else {
+                        logoutAdmin();
+                        showAlert("Sesi Kadaluarsa", "Password admin di server telah diubah. Silakan login ulang.");
+                    }
+                }
+            }).catch(e => {
+                if (isManual) document.getElementById('btn-login-admin').innerText = "Login";
+                document.getElementById('admin-list-container').innerHTML = `<div style="text-align:center; margin-top:50px; color:var(--ios-red);">Gagal menghubungi server pusat. Cek koneksi internet.</div>`;
+            });
+        }
+
+        function logoutAdmin() {
+            localStorage.removeItem('mhy_admin_pass');
+            closeAdminPanel();
+            setTimeout(() => { showAlert("Selesai", "Sesi admin telah ditutup dengan aman."); }, 400);
+        }
+
+        function closeAdminPanel() {
+            document.getElementById('admin-panel').classList.remove('show');
+            setTimeout(() => document.getElementById('admin-panel').style.display = 'none', 400);
+        }
+
+        function setAdminFilterMode(mode) {
+            adminFilterMode = mode;
+            
+            const btnAll = document.getElementById('btn-filter-all');
+            const btnMonth = document.getElementById('btn-filter-month');
+            const btnRange = document.getElementById('btn-filter-range');
+            
+            [btnAll, btnMonth, btnRange].forEach(btn => {
+                if (btn) {
+                    btn.style.background = 'transparent';
+                    btn.style.color = 'rgba(255,255,255,0.5)';
+                }
+            });
+            
+            const activeBtn = document.getElementById('btn-filter-' + mode);
+            if (activeBtn) {
+                activeBtn.style.background = 'var(--ios-blue)';
+                activeBtn.style.color = '#fff';
+            }
+            
+            const wrapMonth = document.getElementById('wrapper-filter-month');
+            const wrapRange = document.getElementById('wrapper-filter-range');
+            
+            if (wrapMonth) wrapMonth.style.display = (mode === 'month') ? 'block' : 'none';
+            if (wrapRange) wrapRange.style.display = (mode === 'range') ? 'flex' : 'none';
+            
+            renderAdminData();
+        }
+
+        function dapatkanTanggalRecord(d) {
+            if (d.id_unik && d.id_unik.startsWith("MHY-")) {
+                const ms = parseInt(d.id_unik.replace("MHY-", ""));
+                if (!isNaN(ms)) return new Date(ms);
+            }
+            if (d.tanggal) {
+                const parsed = Date.parse(d.tanggal);
+                if (!isNaN(parsed)) return new Date(parsed);
+                
+                const parts = d.tanggal.split(', ');
+                const tglPart = parts[1] || parts[0];
+                if (tglPart) {
+                    const tParts = tglPart.split(' ');
+                    if (tParts.length >= 3) {
+                        const dateVal = parseInt(tParts[0]);
+                        const monthName = tParts[1].toLowerCase();
+                        const yearVal = parseInt(tParts[2]);
+                        
+                        const indMonths = ['januari', 'februari', 'maret', 'april', 'mei', 'juni', 'juli', 'agustus', 'september', 'oktober', 'november', 'desember'];
+                        const indMonthsShort = ['jan', 'feb', 'mar', 'apr', 'mei', 'jun', 'jul', 'agu', 'sep', 'okt', 'nov', 'des'];
+                        
+                        let monthIdx = indMonths.indexOf(monthName);
+                        if (monthIdx === -1) monthIdx = indMonthsShort.indexOf(monthName);
+                        if (monthIdx !== -1 && !isNaN(dateVal) && !isNaN(yearVal)) {
+                            return new Date(yearVal, monthIdx, dateVal);
+                        }
+                    }
+                }
+            }
+            return new Date();
+        }
+
+        function dapatkanFilteredGlobalData() {
+            const qPetugas = document.getElementById('search-petugas').value.toLowerCase();
+            const qBarang = document.getElementById('search-barang').value.toLowerCase();
+            
+            return adminDataMaster.filter(d => {
+                if (!d.id_unik) return false; 
+                const p = (d.petugas || "").toLowerCase();
+                const b = (d.nama_barang || "").toLowerCase();
+                
+                if (!p.includes(qPetugas) || !b.includes(qBarang)) return false;
+                
+                const recordDate = dapatkanTanggalRecord(d);
+                if (adminFilterMode === 'month') {
+                    const monthInput = document.getElementById('filter-admin-month').value;
+                    if (monthInput) {
+                        const [year, month] = monthInput.split('-');
+                        const recYear = recordDate.getFullYear();
+                        const recMonth = (recordDate.getMonth() + 1).toString().padStart(2, '0');
+                        if (recYear != year || recMonth != month) return false;
+                    }
+                } else if (adminFilterMode === 'range') {
+                    const startInput = document.getElementById('filter-admin-start').value;
+                    const endInput = document.getElementById('filter-admin-end').value;
+                    
+                    if (startInput) {
+                        const startDate = new Date(startInput);
+                        startDate.setHours(0, 0, 0, 0);
+                        if (recordDate < startDate) return false;
+                    }
+                    if (endInput) {
+                        const endDate = new Date(endInput);
+                        endDate.setHours(23, 59, 59, 999);
+                        if (recordDate > endDate) return false;
+                    }
+                }
+                
+                return true;
+            });
+        }
+
+        function generateGlobalShareText(list) {
+            let filterDesc = "";
+            if (adminFilterMode === 'month') {
+                const monthVal = document.getElementById('filter-admin-month').value;
+                if (monthVal) {
+                    const [y, m] = monthVal.split('-');
+                    const fullMonths = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                    filterDesc = `\n*Periode:* _${fullMonths[parseInt(m) - 1]} ${y}_\n`;
+                } else {
+                    filterDesc = `\n*Periode:* _Semua Bulan_\n`;
+                }
+            } else if (adminFilterMode === 'range') {
+                const startVal = document.getElementById('filter-admin-start').value;
+                const endVal = document.getElementById('filter-admin-end').value;
+                if (startVal || endVal) {
+                    filterDesc = `\n*Rentang:* _${startVal || 'Awal'} s/d ${endVal || 'Kini'}_\n`;
+                } else {
+                    filterDesc = `\n*Rentang:* _Semua Tanggal_\n`;
+                }
+            } else {
+                filterDesc = `\n*Periode:* _Semua Waktu_\n`;
+            }
+            
+            let text = `*LAPORAN HASIL SURVEI HARGA GLOBAL*${filterDesc}`;
+            
+            const qPetugas = document.getElementById('search-petugas').value.trim();
+            const qBarang = document.getElementById('search-barang').value.trim();
+            if (qPetugas) text += `*Pencarian Petugas:* _${qPetugas}_\n`;
+            if (qBarang) text += `*Pencarian Barang:* _${qBarang}_\n`;
+            
+            // Dapatkan seluruh petugas dan lokasi yang unik dari list
+            const petugasUnik = [...new Set(list.map(i => (i.petugas || "").trim()).filter(Boolean))];
+            const lokasiUnik = [...new Set(list.map(i => (i.lokasi || "").trim()).filter(Boolean))];
+            
+            text += `*Petugas:* _${petugasUnik.join(', ') || '-'}_\n`;
+            text += `*Lokasi:* _${lokasiUnik.join(', ') || '-'}_\n`;
+            text += `=========================\n\n`;
+            
+            // Kelompokkan barang berdasarkan nama barang (case-insensitive)
+            const kelompok = {};
+            list.forEach(i => {
+                const namaKey = i.nama_barang.trim().toLowerCase();
+                if (!kelompok[namaKey]) {
+                    kelompok[namaKey] = {
+                        nama_asli: i.nama_barang.trim(),
+                        satuan: i.satuan || 'pcs',
+                        list_survei: []
+                    };
+                }
+                kelompok[namaKey].list_survei.push(i);
+            });
+            
+            let idx = 1;
+            for (const key in kelompok) {
+                const itemGroup = kelompok[key];
+                
+                // Urutkan survei di dalam kelompok ini berdasarkan waktu terbaru dahulu
+                itemGroup.list_survei.sort((a, b) => {
+                    const timeA = a.id_unik && a.id_unik.startsWith("MHY-") ? parseInt(a.id_unik.replace("MHY-", "")) : (Date.parse(a.tanggal) || 0);
+                    const timeB = b.id_unik && b.id_unik.startsWith("MHY-") ? parseInt(b.id_unik.replace("MHY-", "")) : (Date.parse(b.tanggal) || 0);
+                    return timeB - timeA;
+                });
+                
+                const terbaru = itemGroup.list_survei[0];
+                const hargaTerbaru = formatAngkaTitik(terbaru.harga);
+                
+                if (itemGroup.list_survei.length === 1) {
+                    let waktuRapi = terbaru.waktu || formatWaktuSatelit(terbaru.tanggal, terbaru.jam) || "-";
+                    text += `${idx}. *${itemGroup.nama_asli}* - Rp ${hargaTerbaru}/${itemGroup.satuan} _(${waktuRapi})_\n`;
+                } else {
+                    text += `${idx}. *${itemGroup.nama_asli}* - Rp ${hargaTerbaru}/${itemGroup.satuan} _(Terbaru)_\n`;
+                    itemGroup.list_survei.forEach(rec => {
+                        let waktuRapi = rec.waktu || formatWaktuSatelit(rec.tanggal, rec.jam) || "-";
+                        text += `   • _${waktuRapi}_: Rp ${formatAngkaTitik(rec.harga)}\n`;
+                    });
+                }
+                text += `\n`;
+                idx++;
+            }
+            
+            text += `=========================\n`;
+            text += `_Total data log: ${list.length}_`;
+            
+            return text;
+        }
+
+        async function shareGlobalData() {
+            const list = dapatkanFilteredGlobalData();
+            if (list.length === 0) return showAlert("Data Kosong", "Tidak ada data global yang cocok untuk dibagikan.");
+            
+            const text = generateGlobalShareText(list);
+            
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'Data Survei Harga Global',
+                        text: text
+                    });
+                } catch (err) {
+                    console.log("Web Share dibatalkan atau gagal:", err);
+                }
+            } else {
+                copyGlobalData();
+            }
+        }
+
+        function copyGlobalData() {
+            const list = dapatkanFilteredGlobalData();
+            if (list.length === 0) return showAlert("Data Kosong", "Tidak ada data global yang cocok untuk disalin.");
+            
+            const text = generateGlobalShareText(list);
+            
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text).then(() => showAlert("Sukses Disalin", "Data survei global berhasil disalin ke clipboard!"));
+            } else {
+                let ta = document.createElement("textarea"); 
+                ta.value = text; 
+                document.body.appendChild(ta); 
+                ta.select(); 
+                document.execCommand('copy'); 
+                document.body.removeChild(ta);
+                showAlert("Sukses Disalin", "Data survei global berhasil disalin ke clipboard!");
+            }
+        }
+
+        function renderAdminData() {
+            const container = document.getElementById('admin-list-container');
+            const filtered = dapatkanFilteredGlobalData();
+
+            if(filtered.length === 0) {
+                container.innerHTML = `<div style="text-align:center; margin-top:50px; color:rgba(255,255,255,0.5);">Tidak ada data yang cocok.</div>`;
+                return;
+            }
+
+            container.innerHTML = '';
+            filtered.forEach(item => {
+                let waktuRapi = item.waktu || formatWaktuSatelit(item.tanggal, item.jam) || "-"; // Fungsi Menerjemahkan Waktu
+
+                container.innerHTML += `
+                    <div class="admin-card">
+                        <div class="admin-card-head">
+                            <b><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg> ${item.nama_barang}</b>
+                            <span>Rp ${formatAngkaTitik(item.harga)}/${item.satuan}</span>
+                        </div>
+                        <div class="admin-card-body">
+                            <p><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Petugas: ${item.petugas}</p>
+                            <p><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> ${waktuRapi}</p>
+                            <p><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> ${item.lokasi}</p>
+                        </div>
+                        <div style="margin-top:16px; display:flex; justify-content:space-between; align-items:center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 14px;">
+                            <button onclick="openChartPanelForBarang('${item.nama_barang.replace(/'/g, "\\'")}')" style="background:rgba(10,132,255,0.12); color:var(--ios-blue); border:1px solid rgba(10,132,255,0.2); padding:10px 16px; border-radius:12px; font-size:13px; font-weight:600; cursor:pointer; transition:0.2s; display:flex; align-items:center; gap:6px;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                                Lihat Grafik
+                            </button>
+                            <button onclick="hapusDataGlobal('${item.id_unik}', this)" style="background:rgba(255,69,58,0.1); color:var(--ios-red); border:1px solid rgba(255,69,58,0.2); padding:10px 16px; border-radius:12px; font-size:13px; font-weight:600; cursor:pointer; transition:0.2s;">Hapus</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function hapusDataGlobal(id_unik, btnElement) {
+            showConfirm("Hapus Selamanya?", "Data ini akan dihapus dari Server Pusat tanpa bisa dikembalikan. Lanjutkan?", () => {
+                const originalText = btnElement.innerHTML;
+                btnElement.innerHTML = 'Memusnahkan... <svg class="icon-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-left: 6px;"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>';
+                btnElement.disabled = true;
+                btnElement.style.opacity = "0.5";
+
+                fetch(gasUrl, {
+                    method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: "delete", id_unik: id_unik })
+                }).then(r => r.json()).then(res => {
+                    if(res.status === "sukses_delete") {
+                        adminDataMaster = adminDataMaster.filter(d => String(d.id_unik) !== String(id_unik));
+                        renderAdminData(); 
+                    } else {
+                        btnElement.innerHTML = originalText;
+                        btnElement.disabled = false;
+                        btnElement.style.opacity = "1";
+                        showAlert("Gagal", "Data tidak ditemukan atau error di server.");
+                    }
+                }).catch(() => {
+                    btnElement.innerHTML = originalText;
+                    btnElement.disabled = false;
+                    btnElement.style.opacity = "1";
+                    showAlert("Error", "Gagal memproses. Periksa jaringan.");
+                });
+            });
+        }
+
+        function openChartPanelForBarang(namaBarang) {
+            document.getElementById('chart-panel').style.display = 'flex';
+            setTimeout(() => document.getElementById('chart-panel').classList.add('show'), 10);
+            renderPriceTrendChart(namaBarang);
+        }
+
+        function closeChartPanel() {
+            document.getElementById('chart-panel').classList.remove('show');
+            setTimeout(() => {
+                document.getElementById('chart-panel').style.display = 'none';
+            }, 400);
+        }
+
+        function openChartPanelForSearch() {
+            const searchInput = document.getElementById('search-barang').value.trim();
+            if (searchInput) {
+                const match = adminDataMaster.find(d => d.nama_barang && d.nama_barang.toLowerCase().includes(searchInput.toLowerCase()));
+                if (match) {
+                    openChartPanelForBarang(match.nama_barang);
+                } else {
+                    showAlert("Barang Tidak Ditemukan", `Tidak ada data global untuk pencarian "${searchInput}".`);
+                }
+            } else {
+                if (adminDataMaster.length === 0) {
+                    return showAlert("Data Kosong", "Belum ada data global yang terpasang.");
+                }
+                const counts = {};
+                adminDataMaster.forEach(d => {
+                    if (d.nama_barang) counts[d.nama_barang] = (counts[d.nama_barang] || 0) + 1;
+                });
+                let maxItem = "";
+                let maxCount = 0;
+                for (const item in counts) {
+                    if (counts[item] > maxCount) {
+                        maxCount = counts[item];
+                        maxItem = item;
+                    }
+                }
+                if (maxItem) {
+                    openChartPanelForBarang(maxItem);
+                } else {
+                    showAlert("Pemberitahuan", "Masukkan nama barang di kotak pencarian terlebih dahulu.");
+                }
+            }
+        }
+
+        function formatAngkaSingkat(val) {
+            if (val >= 1000000) {
+                return (val / 1000000).toFixed(1).replace(/\.0$/, '') + 'jt';
+            }
+            if (val >= 1000) {
+                return (val / 1000).toFixed(0) + 'rb';
+            }
+            return Math.round(val).toString();
+        }
+
+        function showChartTooltip(x, y, rawTgl, rawJam, price, lokasi, petugas, waktu) {
+            const tooltip = document.getElementById('chart-tooltip');
+            const container = document.getElementById('chart-svg-container');
+            const containerWidth = container.clientWidth || 320;
+            const containerHeight = container.clientHeight || 220;
+            
+            const px = (x / 500) * containerWidth;
+            const py = (y / 200) * containerHeight;
+            
+            const fullWaktu = waktu || formatWaktuSatelit(rawTgl, rawJam);
+            const formattedDate = fullWaktu.split(" • ")[0] || rawTgl;
+            const formattedTime = fullWaktu.split(" • ")[1] || rawJam;
+            
+            document.getElementById('tooltip-date').innerText = `${formattedDate} • ${formattedTime}`;
+            document.getElementById('tooltip-price').innerText = `Rp ${formatAngkaTitik(price)}`;
+            document.getElementById('tooltip-desc').innerHTML = `📍 ${lokasi}<br>👤 Petugas: ${petugas}`;
+            
+            tooltip.style.left = `${px}px`;
+            tooltip.style.top = `${py - 10}px`;
+            tooltip.classList.add('show');
+            
+            if (window.tooltipTimeout) clearTimeout(window.tooltipTimeout);
+            window.tooltipTimeout = setTimeout(() => {
+                tooltip.classList.remove('show');
+            }, 4000);
+        }
+
+        function renderPriceTrendChart(namaBarang) {
+            const rawRecords = adminDataMaster.filter(d => d.nama_barang && d.nama_barang.toLowerCase() === namaBarang.toLowerCase());
+            
+            document.getElementById('chart-item-name').innerText = namaBarang;
+            
+            if (rawRecords.length === 0) {
+                document.getElementById('chart-item-latest-location').innerText = "Belum Ada Lokasi";
+                document.getElementById('chart-metric-max').innerText = "Rp 0";
+                document.getElementById('chart-metric-min').innerText = "Rp 0";
+                document.getElementById('chart-metric-latest').innerText = "Rp 0";
+                document.getElementById('chart-svg').innerHTML = `
+                    <text x="250" y="100" fill="rgba(255,255,255,0.3)" font-size="14" text-anchor="middle" font-weight="600">Belum ada data untuk dipetakan</text>
+                `;
+                document.getElementById('chart-timeline-container').innerHTML = '<div class="chart-empty-state">Tidak ada data riwayat perubahan harga.</div>';
+                return;
+            }
+
+            const records = rawRecords.map(d => {
+                const price = parseFloat(String(d.harga).replace(/[^0-9]/g, '')) || 0;
+                let timestamp = 0;
+                if (d.id_unik && d.id_unik.startsWith("MHY-")) {
+                    timestamp = parseInt(d.id_unik.replace("MHY-", ""));
+                }
+                if (!timestamp && d.tanggal) {
+                    const parsed = Date.parse(d.tanggal);
+                    if (!isNaN(parsed)) timestamp = parsed;
+                }
+                if (!timestamp) {
+                    timestamp = Date.now();
+                }
+                return {
+                    ...d,
+                    price: price,
+                    timestamp: timestamp
+                };
+            });
+
+            // Sort chronologically ascending
+            records.sort((a, b) => a.timestamp - b.timestamp);
+
+            const latestRecord = records[records.length - 1];
+            document.getElementById('chart-item-latest-location').innerText = latestRecord.lokasi || "Tidak Ada Lokasi";
+            
+            const prices = records.map(r => r.price);
+            const maxPrice = Math.max(...prices);
+            const minPrice = Math.min(...prices);
+            const latestPrice = latestRecord.price;
+            
+            document.getElementById('chart-metric-max').innerText = `Rp ${formatAngkaTitik(maxPrice)}`;
+            document.getElementById('chart-metric-min').innerText = `Rp ${formatAngkaTitik(minPrice)}`;
+            document.getElementById('chart-metric-latest').innerText = `Rp ${formatAngkaTitik(latestPrice)}`;
+
+            // Dimensions for the 500x200 viewBox
+            const paddingLeft = 55;
+            const paddingRight = 20;
+            const paddingTop = 20;
+            const paddingBottom = 30;
+            const width = 500 - paddingLeft - paddingRight;
+            const height = 200 - paddingTop - paddingBottom;
+
+            const minTime = records[0].timestamp;
+            const maxTime = records[records.length - 1].timestamp;
+            const timeRange = maxTime - minTime || 1;
+
+            // Give price ranges some breathing room
+            let minVal = minPrice * 0.92;
+            let maxVal = maxPrice * 1.08;
+            if (minVal === maxVal || maxVal - minVal < 10) {
+                minVal = minPrice - 1000 > 0 ? minPrice - 1000 : 0;
+                maxVal = maxPrice + 1000;
+            }
+            const valRange = maxVal - minVal || 1;
+
+            // Draw guidelines
+            let guidelines = '';
+            const numGuidelines = 3;
+            for (let i = 0; i < numGuidelines; i++) {
+                const val = minVal + (valRange * i) / (numGuidelines - 1);
+                const gy = paddingTop + height - (i / (numGuidelines - 1)) * height;
+                guidelines += `<line x1="${paddingLeft}" y1="${gy}" x2="${500 - paddingRight}" y2="${gy}" stroke="rgba(255,255,255,0.08)" stroke-width="1" stroke-dasharray="4 4" />`;
+                guidelines += `<text x="${paddingLeft - 8}" y="${gy + 3}" fill="rgba(255,255,255,0.3)" font-size="9" text-anchor="end" font-weight="600">Rp ${formatAngkaSingkat(val)}</text>`;
+            }
+
+            // Map points to SVG coordinates
+            let pathD = '';
+            let points = [];
+            records.forEach((r, idx) => {
+                const rx = paddingLeft + (records.length > 1 ? ((r.timestamp - minTime) / timeRange) * width : width / 2);
+                const ry = paddingTop + height - ((r.price - minVal) / valRange) * height;
+                points.push({ x: rx, y: ry, item: r });
+                if (idx === 0) {
+                    pathD += `M ${rx} ${ry}`;
+                } else {
+                    pathD += ` L ${rx} ${ry}`;
+                }
+            });
+
+            // Close the path for gradient fill
+            let areaPathD = '';
+            if (points.length > 0) {
+                const firstX = points[0].x;
+                const lastX = points[points.length - 1].x;
+                const bottomY = paddingTop + height;
+                areaPathD = `${pathD} L ${lastX} ${bottomY} L ${firstX} ${bottomY} Z`;
+            }
+
+            // Circle node markers
+            let circleElements = '';
+            points.forEach((pt) => {
+                circleElements += `
+                    <g class="chart-point" style="cursor: pointer;" onclick="showChartTooltip(${pt.x}, ${pt.y}, '${pt.item.tanggal}', '${pt.item.jam}', ${pt.item.price}, '${pt.item.lokasi.replace(/'/g, "\\'")}', '${pt.item.petugas.replace(/'/g, "\\'")}', '${pt.item.waktu || ''}')">
+                        <circle cx="${pt.x}" cy="${pt.y}" r="12" fill="rgba(10, 132, 255, 0.0)" />
+                        <circle cx="${pt.x}" cy="${pt.y}" r="8" fill="rgba(10, 132, 255, 0.15)" />
+                        <circle cx="${pt.x}" cy="${pt.y}" r="4" fill="#0a84ff" stroke="#fff" stroke-width="1.5" />
+                    </g>
+                `;
+            });
+
+            // Set the dynamic SVG innerHTML
+            const svg = document.getElementById('chart-svg');
+            svg.setAttribute('viewBox', '0 0 500 200');
+            svg.innerHTML = `
+                <defs>
+                    <linearGradient id="chart-area-grad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#0a84ff" stop-opacity="0.35" />
+                        <stop offset="100%" stop-color="#0a84ff" stop-opacity="0.0" />
+                    </linearGradient>
+                </defs>
+                ${guidelines}
+                ${areaPathD ? `<path d="${areaPathD}" fill="url(#chart-area-grad)" />` : ''}
+                ${pathD ? `<path d="${pathD}" fill="none" stroke="#0a84ff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />` : ''}
+                ${circleElements}
+            `;
+
+            // Reset tooltip
+            document.getElementById('chart-tooltip').classList.remove('show');
+
+            // Render Timeline List
+            let timelineHTML = '';
+            for (let i = records.length - 1; i >= 0; i--) {
+                const rec = records[i];
+                let trendIndicator = '';
+                
+                if (i > 0) {
+                    const prevRec = records[i - 1];
+                    const diff = rec.price - prevRec.price;
+                    if (diff > 0) {
+                        trendIndicator = `
+                            <span class="trend-indicator trend-up">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="display:inline; vertical-align:middle; margin-right:2px;"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                                Naik Rp ${formatAngkaTitik(diff)}
+                            </span>
+                        `;
+                    } else if (diff < 0) {
+                        trendIndicator = `
+                            <span class="trend-indicator trend-down">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="display:inline; vertical-align:middle; margin-right:2px;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                                Turun Rp ${formatAngkaTitik(Math.abs(diff))}
+                            </span>
+                        `;
+                    } else {
+                        trendIndicator = `
+                            <span class="trend-indicator trend-stable">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="display:inline; vertical-align:middle; margin-right:2px;"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                Stabil
+                            </span>
+                        `;
+                    }
+                } else {
+                    trendIndicator = `
+                        <span class="trend-indicator trend-stable">
+                            Awal Catatan
+                        </span>
+                    `;
+                }
+                
+                const formattedWaktu = formatWaktuSatelit(rec.tanggal, rec.jam);
+                
+                timelineHTML += `
+                    <div class="timeline-card">
+                        <div class="timeline-left">
+                            <div style="font-weight: 700; color: #fff; font-size: 15px;">Rp ${formatAngkaTitik(rec.price)}<span style="font-size:12px; font-weight:500; color:rgba(255,255,255,0.4);">/${rec.satuan}</span></div>
+                            <div class="timeline-date">${formattedWaktu}</div>
+                            <div class="timeline-loc">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color: var(--ios-blue); flex-shrink: 0;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                                <span style="line-height: 1.3;">${rec.lokasi}</span>
+                            </div>
+                            <div class="timeline-petugas">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                <span>${rec.petugas}</span>
+                            </div>
+                        </div>
+                        <div class="timeline-right">
+                            ${trendIndicator}
+                        </div>
+                    </div>
+                `;
+            }
+            document.getElementById('chart-timeline-container').innerHTML = timelineHTML || '<div class="chart-empty-state">Tidak ada data riwayat perubahan harga.</div>';
+        }
+
+        function openModal() {
+            document.getElementById('modal-barang').value = document.getElementById('barang').value;
+            document.getElementById('modal-harga').value = document.getElementById('harga').value;
+            document.getElementById('modal-satuan').value = document.getElementById('satuan').value;
+            document.getElementById('ios-modal-overlay').style.display = 'flex';
+            setTimeout(() => document.getElementById('ios-modal-overlay').classList.add('show'), 10);
+        }
+
+        function closeModal() {
+            document.getElementById('ios-modal-overlay').classList.remove('show');
+            setTimeout(() => document.getElementById('ios-modal-overlay').style.display = 'none', 300);
+        }
+
+        function confirmModal() {
+            const mNama = document.getElementById('modal-barang').value;
+            const mHarga = document.getElementById('modal-harga').value;
+            if(!mNama || !mHarga) return;
+            document.getElementById('barang').value = mNama;
+            document.getElementById('harga').value = mHarga;
+            document.getElementById('satuan').value = document.getElementById('modal-satuan').value;
+            closeModal();
+            setTimeout(() => capture(), 350); 
+        }
+
+        function capture() {
+            let namaPetugas = localStorage.getItem("mhy_petugas");
+            if (!namaPetugas) {
+                document.getElementById('petugas-modal-overlay').style.display = 'flex';
+                setTimeout(() => document.getElementById('petugas-modal-overlay').classList.add('show'), 10);
+                return; 
+            }
+
+            const bNama = document.getElementById('barang').value;
+            const bHarga = document.getElementById('harga').value;
+            const bSatuan = document.getElementById('satuan').value || 'pcs';
+            const bLokasi = document.getElementById('lokasi').value || 'Tidak Ada Lokasi';
+
+            if(!bNama || !bHarga) return openModal();
+
+            const f = document.getElementById('flash');
+            f.classList.add('flash-anim');
+            setTimeout(() => f.classList.remove('flash-anim'), 400);
+
+            canvas.width = 1200; canvas.height = 1600;
+            const ctx = canvas.getContext('2d');
+
+            if(isCameraActive) {
+                const sW = video.videoWidth; const sH = video.videoHeight;
+                let cW, cH, sx, sy;
+                if (sW / sH > 3 / 4) { cH = sH; cW = sH * (3 / 4); sx = (sW - cW) / 2; sy = 0; } 
+                else { cW = sW; cH = sW / (3 / 4); sx = 0; sy = (sH - cH) / 2; }
+                ctx.drawImage(video, sx, sy, cW, cH, 0, 0, 1200, 1600);
+            } else {
+                ctx.fillStyle = "#111"; ctx.fillRect(0,0, 1200, 1600);
+            }
+
+            const timeStr = getYahYuDateTime();
+            
+            const idUnik = "MHY-" + Date.now(); 
+            
+            const lines = [
+                { text: bNama.toUpperCase(), font: "bold 62px sans-serif", color: "#ffffff", height: 64 },
+                { text: `Rp ${bHarga} / ${bSatuan}`, font: "bold 48px sans-serif", color: "#ffffff", height: 50 },
+                { text: bLokasi, font: "normal 34px sans-serif", color: "rgba(255, 255, 255, 0.9)", height: 38 },
+                { text: timeStr, font: "normal 30px sans-serif", color: "rgba(255, 255, 255, 0.7)", height: 34 },
+                { text: `Petugas Lapangan : ${namaPetugas}`, font: "bold 26px sans-serif", color: "rgba(255, 255, 255, 0.5)", height: 30 }
+            ];
+
+            let maxTextWidth = 0; let totalHeight = 0;
+            lines.forEach(line => {
+                ctx.font = line.font;
+                let w = ctx.measureText(line.text).width;
+                if (w > maxTextWidth) maxTextWidth = w;
+                totalHeight += line.height + 18;
+            });
+            totalHeight -= 18; 
+
+            const boxW = Math.min(maxTextWidth + 90, 1200 - 80);
+            const boxH = totalHeight + 90;
+            const startX = 40; const startY = 1600 - boxH - 40;
+
+            ctx.fillStyle = "rgba(15, 15, 18, 0.85)"; 
+            ctx.beginPath(); ctx.roundRect(startX, startY, boxW, boxH, 36); ctx.fill();
+            ctx.lineWidth = 2; ctx.strokeStyle = "rgba(255, 255, 255, 0.15)"; ctx.stroke();
+
+            ctx.textBaseline = "top";
+            let currentY = startY + 45;
+            lines.forEach(line => {
+                ctx.font = line.font; ctx.fillStyle = line.color;
+                ctx.fillText(line.text, startX + 45, currentY);
+                currentY += line.height + 18;
+            });
+
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.95); 
+            preview.src = dataUrl; preview.style.display = 'block'; video.style.display = 'none';
+
+            if (db) {
+                const tx = db.transaction("surveys", "readwrite");
+                tx.objectStore("surveys").put({
+                    id: idUnik, nama: bNama, harga: formatAngkaTitik(bHarga), satuan: bSatuan,
+                    lokasi: bLokasi, waktu: timeStr, image: dataUrl
+                });
+            }
+
+            const now = new Date();
+            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const fullMonths = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            
+            fetch(gasUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({
+                    action: "insert", id_unik: idUnik,
+                    tanggal: `${days[now.getDay()]}, ${now.getDate().toString().padStart(2, '0')} ${fullMonths[now.getMonth()]} ${now.getFullYear()}`,
+                    jam: now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0'),
+                    petugas: namaPetugas, lokasi: bLokasi, nama_barang: bNama, harga: bHarga, satuan: bSatuan
+                })
+            }).catch(e => console.log("Background upload tertunda. Mode Offline aktif."));
+
+            const link = document.createElement('a');
+            link.download = `Survei_${bNama.replace(/\s+/g, '_')}.jpg`; link.href = dataUrl; link.click();
+            canvas.toBlob(blob => { imageBlob = new File([blob], "survey.jpg", {type:"image/jpeg"}); }, 'image/jpeg', 0.95);
+
+            snapBtn.style.display = 'none'; document.getElementById('action-area').style.display = 'flex';
+            status.innerText = "Laporan Diamankan di Sistem";
+        }
+
+        async function shareToWA() {
+            if (!imageBlob) return;
+            const bHargaFormated = formatAngkaTitik(document.getElementById('harga').value);
+            const pesanText = `*${document.getElementById('barang').value}*\nHarga: Rp ${bHargaFormated} / ${document.getElementById('satuan').value || 'pcs'}\nWaktu: _${getYahYuDateTime()}_\nLokasi: _${document.getElementById('lokasi').value || '-'}_`;
+            
+            if (navigator.canShare && navigator.canShare({ files: [imageBlob] })) {
+                try { await navigator.share({ files: [imageBlob], title: 'Laporan Survei', text: pesanText }); } catch(e){}
+            } else showAlert("Maaf", "Sistem HP kamu belum mendukung fitur bagi instan.");
+        }
+
+        function reset() {
+            // FUNGSI INI AKAN SIMPAN BARANG BARU OTOMATIS
+            tambahBarangBaru(); 
+            
+            document.getElementById('barang').value = ""; document.getElementById('harga').value = ""; document.getElementById('satuan').value = "";
+            preview.style.display = 'none'; video.style.display = 'block';
+            snapBtn.style.display = 'block'; document.getElementById('action-area').style.display = 'none';
+            status.innerText = "Kamera Siap • Arahkan ke target";
+            
+            // FOKUS BALIK KE INPUT BARANG BIAR LANGSUNG NGETIK
+            document.getElementById("barang").focus();
+        }
+
+        function openHistory() { document.getElementById('history-modal').style.display = 'flex'; setTimeout(() => document.getElementById('history-modal').classList.add('show'), 10); loadHistoryList(); }
+        function closeHistory() { document.getElementById('history-modal').classList.remove('show'); setTimeout(() => document.getElementById('history-modal').style.display = 'none', 400); }
+
+        function loadHistoryList() {
+            if (!db) return;
+            db.transaction("surveys", "readonly").objectStore("surveys").getAll().onsuccess = (e) => {
+                const list = e.target.result.reverse(); 
+                const container = document.getElementById('history-list'); container.innerHTML = '';
+                if(list.length === 0) return container.innerHTML = '<div style="text-align:center; margin-top:50px; color:rgba(255,255,255,0.4); font-weight:500;">Riwayat surveimu masih kosong.</div>';
+                
+                list.forEach(item => {
+                    let isDataLama = !String(item.id).startsWith("MHY-");
+                    let timeStamp = isDataLama ? item.id : parseInt(String(item.id).replace("MHY-", ""));
+                    
+                    const isBisaDihapus = (Date.now() - timeStamp) <= 120000; 
+                    
+                    let btnHapus = isBisaDihapus ? `<button class="btn-item-danger" onclick="deleteFromDB('${item.id}', this)">Hapus</button>` : `<span style="font-size:12px; color:rgba(255,255,255,0.3); font-weight:600;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: baseline; margin-right: 4px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg> Terkunci</span>`;
+                    
+                    container.innerHTML += `
+                        <div class="list-item">
+                            <div class="list-item-info">
+                                <h4>
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; display: inline-block; vertical-align: middle;">
+                                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                                        <path d="M16 10a4 4 0 0 1-8 0"></path>
+                                    </svg>
+                                    ${item.nama}
+                                </h4>
+                                <p>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; display: inline-block; vertical-align: middle;">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <polyline points="12 6 12 12 16 14"></polyline>
+                                    </svg>
+                                    ${item.waktu}
+                                </p>
+                            </div>
+                            <div class="list-item-actions">${btnHapus}<button class="btn-item-normal" onclick="openDetail('${item.id}')">Lihat</button></div>
+                        </div>`;
+                });
+            }
+        }
+
+        function deleteFromDB(id, btnElement) {
+            showConfirm("Koreksi Data?", "Barang yang salah ini akan ditarik mundur dari Server Pusat. Proses?", () => {
+                const originalText = btnElement.innerHTML;
+                btnElement.innerHTML = `
+                    <svg class="icon-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle;">
+                        <line x1="12" y1="2" x2="12" y2="6"></line>
+                        <line x1="12" y1="18" x2="12" y2="22"></line>
+                        <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+                        <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+                        <line x1="2" y1="12" x2="6" y2="12"></line>
+                        <line x1="18" y1="12" x2="22" y2="12"></line>
+                        <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+                        <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+                    </svg>`;
+                btnElement.disabled = true;
+
+                fetch(gasUrl, {
+                    method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: "delete", id_unik: id })
+                }).then(r => r.json()).then(res => {
+                    db.transaction("surveys", "readwrite").objectStore("surveys").delete(id).oncomplete = () => loadHistoryList();
+                }).catch(() => {
+                    btnElement.innerHTML = originalText;
+                    btnElement.disabled = false;
+                    showAlert("Koneksi Buruk", "Gagal menghubungi pusat, coba sebentar lagi.");
+                });
+            });
+        }
+
+        let currentDetailItem = null;
+        function openDetail(id) {
+            db.transaction("surveys", "readonly").objectStore("surveys").get(id).onsuccess = (e) => {
+                currentDetailItem = e.target.result;
+                document.getElementById('detail-img').src = currentDetailItem.image;
+                document.getElementById('detail-title').innerText = currentDetailItem.nama;
+                document.getElementById('detail-modal').style.display = 'flex';
+                setTimeout(() => document.getElementById('detail-modal').classList.add('show'), 10);
+            }
+        }
+        function closeDetail() { document.getElementById('detail-modal').classList.remove('show'); setTimeout(() => document.getElementById('detail-modal').style.display = 'none', 400); }
+        
+        async function shareHistoryItem() {
+            const res = await fetch(currentDetailItem.image); const blob = await res.blob();
+            const file = new File([blob], `Survei_${currentDetailItem.nama}.jpg`, {type: 'image/jpeg'});
+            if(navigator.canShare) navigator.share({ files: [file], text: `*${currentDetailItem.nama}*\nHarga: Rp ${currentDetailItem.harga}/${currentDetailItem.satuan}\nWaktu: _${currentDetailItem.waktu}_` });
+        }
+
+        function openRekap() {
+            document.getElementById('rekap-modal').style.display = 'flex';
+            setTimeout(() => document.getElementById('rekap-modal').classList.add('show'), 10);
+            
+            document.getElementById('nama-petugas-rekap').innerText = localStorage.getItem("mhy_petugas") || "Belum Diatur";
+            const now = new Date();
+            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const fullMonths = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            document.getElementById('rekap-tgl').innerText = `${days[now.getDay()]}, ${now.getDate().toString().padStart(2, '0')} ${fullMonths[now.getMonth()]} ${now.getFullYear()}`;
+            
+            if (!db) return;
+            db.transaction("surveys", "readonly").objectStore("surveys").getAll().onsuccess = (e) => {
+                const list = e.target.result; 
+                const container = document.getElementById('rekap-list-container'); 
+                container.innerHTML = '';
+                if(list.length === 0) {
+                    container.innerHTML = '<div style="text-align:center; color:rgba(255,255,255,0.4); padding: 30px 10px; font-weight: 500;">Sesi ini masih kosong. Silakan jepret survei barang terlebih dahulu.</div>';
+                    return;
+                }
+                list.forEach(item => {
+                    container.innerHTML += `
+                        <div class="rekap-item-row">
+                            <span class="rekap-item-name">${item.nama}</span>
+                            <span class="rekap-item-price">Rp ${item.harga} <span class="rekap-item-unit">/${item.satuan}</span></span>
+                        </div>
+                    `;
+                });
+            }
+        }
+        function closeRekap() { document.getElementById('rekap-modal').classList.remove('show'); setTimeout(() => document.getElementById('rekap-modal').style.display = 'none', 400); }
+        
+        function generateRekapText(list) {
+            let nm = localStorage.getItem("mhy_petugas") || "Petugas";
+            let tgl = document.getElementById('rekap-tgl').innerText;
+            let lokasi = list[0] ? (list[0].lokasi || '-') : '-';
+            
+            let text = `*HASIL CEK HARGA BAHAN BAKU*\n\n`;
+            text += `*Petugas:* _${nm}_\n`;
+            text += `*Lokasi:* _${lokasi}_\n`;
+            text += `*Tanggal:* _${tgl}_\n`;
+            text += `=========================\n\n`;
+            
+            list.forEach((i, idx) => {
+                text += `${idx + 1}. *${i.nama}* - Rp ${i.harga} /${i.satuan}\n`;
+            });
+            
+            return text;
+        }
+
+        async function shareRekap() {
+            if (!db) return;
+            db.transaction("surveys", "readonly").objectStore("surveys").getAll().onsuccess = async (e) => {
+                const list = e.target.result;
+                if (list.length === 0) return showAlert("Data Kosong", "Belum ada barang untuk direkap minggu ini.");
+                
+                const text = generateRekapText(list);
+                
+                if (navigator.share) {
+                    try {
+                        await navigator.share({
+                            title: 'Rekap Survei Harga',
+                            text: text
+                        });
+                    } catch (err) {
+                        console.log("Web Share dibatalkan atau gagal:", err);
+                    }
+                } else {
+                    copyRekapWA();
+                }
+            };
+        }
+
+        function exportRekapExcel() {
+            if (!db) return;
+            db.transaction("surveys", "readonly").objectStore("surveys").getAll().onsuccess = (e) => {
+                const list = e.target.result;
+                if (list.length === 0) return showAlert("Data Kosong", "Belum ada barang untuk diekspor ke Excel.");
+                
+                const nm = localStorage.getItem("mhy_petugas") || "Petugas";
+                const tgl = document.getElementById('rekap-tgl').innerText;
+                const lokasi = list[0] ? (list[0].lokasi || '-') : '-';
+                
+                const data = [
+                    ["LAPORAN HASIL CEK HARGA BAHAN BAKU"],
+                    ["Petugas", nm],
+                    ["Lokasi", lokasi],
+                    ["Tanggal", tgl],
+                    [], 
+                    ["No", "Nama Barang", "Harga (Rp)", "Satuan", "Waktu Survei"]
+                ];
+                
+                list.forEach((item, index) => {
+                    const waktuSatelit = item.waktu || formatWaktuSatelit(item.tanggal, item.jam) || "-";
+                    data.push([
+                        index + 1,
+                        item.nama,
+                        parseInt(item.harga.replace(/\./g, "")) || item.harga,
+                        item.satuan,
+                        waktuSatelit
+                    ]);
+                });
+                
+                try {
+                    const wb = XLSX.utils.book_new();
+                    const ws = XLSX.utils.aoa_to_sheet(data);
+                    
+                    const wscols = [
+                        {wch: 5},   
+                        {wch: 25},  
+                        {wch: 15},  
+                        {wch: 10},  
+                        {wch: 25}   
+                    ];
+                    ws['!cols'] = wscols;
+                    
+                    XLSX.utils.book_append_sheet(wb, ws, "Rekap Sesi");
+                    XLSX.writeFile(wb, `Rekap_Survei_Harga_${nm.replace(/\s+/g, "_")}.xlsx`);
+                    showAlert("Sukses Ekspor", "Berkas Excel berhasil diunduh!");
+                } catch (err) {
+                    console.error(err);
+                    showAlert("Gagal Ekspor", "Terjadi kesalahan saat mengekspor ke Excel.");
+                }
+            };
+        }
+
+        function exportRekapPDF() {
+            if (!db) return;
+            db.transaction("surveys", "readonly").objectStore("surveys").getAll().onsuccess = (e) => {
+                const list = e.target.result;
+                if (list.length === 0) return showAlert("Data Kosong", "Belum ada barang untuk diekspor ke PDF.");
+                
+                const nm = localStorage.getItem("mhy_petugas") || "Petugas";
+                const tgl = document.getElementById('rekap-tgl').innerText;
+                const lokasi = list[0] ? (list[0].lokasi || '-') : '-';
+                
+                try {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF({
+                        orientation: 'portrait',
+                        unit: 'mm',
+                        format: 'a4'
+                    });
+                    
+                    doc.setFont("helvetica", "bold");
+                    doc.setFontSize(16);
+                    doc.setTextColor(15, 15, 18); 
+                    doc.text("LAPORAN CEK HARGA BAHAN BAKU", 14, 20);
+                    
+                    doc.setDrawColor(220, 220, 220);
+                    doc.setLineWidth(0.5);
+                    doc.line(14, 24, 196, 24); 
+                    
+                    doc.setFont("helvetica", "normal");
+                    doc.setFontSize(10);
+                    doc.setTextColor(80, 80, 80);
+                    doc.text(`Petugas : ${nm}`, 14, 30);
+                    doc.text(`Lokasi    : ${lokasi}`, 14, 35);
+                    doc.text(`Tanggal  : ${tgl}`, 14, 40);
+                    
+                    const tableRows = [];
+                    list.forEach((item, index) => {
+                        const waktuSatelit = item.waktu || formatWaktuSatelit(item.tanggal, item.jam) || "-";
+                        tableRows.push([
+                            index + 1,
+                            item.nama,
+                            `Rp ${item.harga}`,
+                            item.satuan,
+                            waktuSatelit
+                        ]);
+                    });
+                    
+                    doc.autoTable({
+                        startY: 46,
+                        head: [["No", "Nama Barang", "Harga", "Satuan", "Waktu Survei"]],
+                        body: tableRows,
+                        theme: 'striped',
+                        headStyles: {
+                            fillColor: [10, 132, 255], 
+                            textColor: [255, 255, 255],
+                            fontStyle: 'bold',
+                            fontSize: 10
+                        },
+                        bodyStyles: {
+                            fontSize: 9,
+                            textColor: [40, 40, 40]
+                        },
+                        columnStyles: {
+                            0: { cellWidth: 12, halign: 'center' },
+                            1: { cellWidth: 60 },
+                            2: { cellWidth: 35, halign: 'right' },
+                            3: { cellWidth: 25, halign: 'center' },
+                            4: { cellWidth: 50, halign: 'center' }
+                        },
+                        styles: {
+                            font: "helvetica",
+                            lineColor: [230, 230, 230],
+                            lineWidth: 0.1
+                        },
+                        margin: { left: 14, right: 14 },
+                        didDrawPage: function(data) {
+                            doc.setFont("helvetica", "italic");
+                            doc.setFontSize(8);
+                            doc.setTextColor(150, 150, 150);
+                            doc.text(`Halaman ${data.pageNumber} dari ${doc.internal.getNumberOfPages()}`, 14, doc.internal.pageSize.height - 10);
+                            doc.text("Sistem Survei Harga Pasar Premium - Offline First", doc.internal.pageSize.width - 85, doc.internal.pageSize.height - 10);
+                        }
+                    });
+                    
+                    doc.save(`Rekap_Survei_Harga_${nm.replace(/\s+/g, "_")}.pdf`);
+                    showAlert("Sukses Ekspor", "Laporan PDF A4 berhasil diunduh!");
+                } catch (err) {
+                    console.error(err);
+                    showAlert("Gagal Ekspor", "Terjadi kesalahan saat mengekspor ke PDF.");
+                }
+            };
+        }
+
+        function exportGlobalExcel() {
+            const list = dapatkanFilteredGlobalData();
+            if (list.length === 0) return showAlert("Data Kosong", "Tidak ada data global yang cocok untuk diekspor ke Excel.");
+            
+            const sortedList = [...list].sort((a, b) => {
+                const timeA = a.id_unik && a.id_unik.startsWith("MHY-") ? parseInt(a.id_unik.replace("MHY-", "")) : (Date.parse(a.tanggal) || 0);
+                const timeB = b.id_unik && b.id_unik.startsWith("MHY-") ? parseInt(b.id_unik.replace("MHY-", "")) : (Date.parse(b.tanggal) || 0);
+                return timeB - timeA;
+            });
+            
+            let filterDesc = "Semua Waktu";
+            if (adminFilterMode === 'month') {
+                const monthVal = document.getElementById('filter-admin-month').value;
+                if (monthVal) {
+                    const [y, m] = monthVal.split('-');
+                    const fullMonths = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                    filterDesc = `Bulan ${fullMonths[parseInt(m) - 1]} ${y}`;
+                }
+            } else if (adminFilterMode === 'range') {
+                const startVal = document.getElementById('filter-admin-start').value;
+                const endVal = document.getElementById('filter-admin-end').value;
+                if (startVal || endVal) {
+                    filterDesc = `Rentang ${startVal || 'Awal'} s/d ${endVal || 'Kini'}`;
+                }
+            }
+            
+            const data = [
+                ["LAPORAN HASIL SURVEI HARGA GLOBAL"],
+                ["Periode Filter", filterDesc],
+                ["Jumlah Record", `${sortedList.length} data`],
+                [],
+                ["No", "Nama Barang", "Harga (Rp)", "Satuan", "Lokasi Pasar / Toko", "Nama Petugas", "Waktu Survei"]
+            ];
+            
+            sortedList.forEach((item, index) => {
+                const waktuSatelit = item.waktu || formatWaktuSatelit(item.tanggal, item.jam) || "-";
+                data.push([
+                    index + 1,
+                    item.nama_barang,
+                    parseInt(item.harga) || item.harga,
+                    item.satuan || "pcs",
+                    item.lokasi || "-",
+                    item.petugas || "-",
+                    waktuSatelit
+                ]);
+            });
+            
+            try {
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.aoa_to_sheet(data);
+                
+                const wscols = [
+                    {wch: 5},   
+                    {wch: 25},  
+                    {wch: 15},  
+                    {wch: 10},  
+                    {wch: 25},  
+                    {wch: 20},  
+                    {wch: 25}   
+                ];
+                ws['!cols'] = wscols;
+                
+                XLSX.utils.book_append_sheet(wb, ws, "Data Global");
+                XLSX.writeFile(wb, `Laporan_Survei_Harga_Global_${filterDesc.replace(/\s+/g, "_")}.xlsx`);
+                showAlert("Sukses Ekspor", "Data global berhasil diekspor ke Excel!");
+            } catch (err) {
+                console.error(err);
+                showAlert("Gagal Ekspor", "Terjadi kesalahan saat mengekspor ke Excel.");
+            }
+        }
+
+        function exportGlobalPDF() {
+            const list = dapatkanFilteredGlobalData();
+            if (list.length === 0) return showAlert("Data Kosong", "Tidak ada data global yang cocok untuk diekspor ke PDF.");
+            
+            const sortedList = [...list].sort((a, b) => {
+                const timeA = a.id_unik && a.id_unik.startsWith("MHY-") ? parseInt(a.id_unik.replace("MHY-", "")) : (Date.parse(a.tanggal) || 0);
+                const timeB = b.id_unik && b.id_unik.startsWith("MHY-") ? parseInt(b.id_unik.replace("MHY-", "")) : (Date.parse(b.tanggal) || 0);
+                return timeB - timeA;
+            });
+            
+            let filterDesc = "Semua Waktu";
+            if (adminFilterMode === 'month') {
+                const monthVal = document.getElementById('filter-admin-month').value;
+                if (monthVal) {
+                    const [y, m] = monthVal.split('-');
+                    const fullMonths = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                    filterDesc = `Bulan ${fullMonths[parseInt(m) - 1]} ${y}`;
+                }
+            } else if (adminFilterMode === 'range') {
+                const startVal = document.getElementById('filter-admin-start').value;
+                const endVal = document.getElementById('filter-admin-end').value;
+                if (startVal || endVal) {
+                    filterDesc = `Rentang ${startVal || 'Awal'} s/d ${endVal || 'Kini'}`;
+                }
+            }
+            
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({
+                    orientation: 'landscape', 
+                    unit: 'mm',
+                    format: 'a4'
+                });
+                
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(16);
+                doc.setTextColor(15, 15, 18);
+                doc.text("LAPORAN MONITORING HARGA BAHAN BAKU GLOBAL", 14, 20);
+                
+                doc.setDrawColor(220, 220, 220);
+                doc.setLineWidth(0.5);
+                doc.line(14, 24, 283, 24); 
+                
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(10);
+                doc.setTextColor(80, 80, 80);
+                doc.text(`Periode Filter  : ${filterDesc}`, 14, 30);
+                doc.text(`Total Records  : ${sortedList.length} data survei`, 14, 35);
+                
+                const tableRows = [];
+                sortedList.forEach((item, index) => {
+                    const waktuSatelit = item.waktu || formatWaktuSatelit(item.tanggal, item.jam) || "-";
+                    tableRows.push([
+                        index + 1,
+                        item.nama_barang,
+                        `Rp ${formatAngkaTitik(item.harga)}`,
+                        item.satuan || "pcs",
+                        item.lokasi || "-",
+                        item.petugas || "-",
+                        waktuSatelit
+                    ]);
+                });
+                
+                doc.autoTable({
+                    startY: 40,
+                    head: [["No", "Nama Barang", "Harga", "Satuan", "Lokasi Pasar / Toko", "Nama Petugas", "Waktu Survei"]],
+                    body: tableRows,
+                    theme: 'striped',
+                    headStyles: {
+                        fillColor: [10, 132, 255], 
+                        textColor: [255, 255, 255],
+                        fontStyle: 'bold',
+                        fontSize: 10
+                    },
+                    bodyStyles: {
+                        fontSize: 9,
+                        textColor: [40, 40, 40]
+                    },
+                    columnStyles: {
+                        0: { cellWidth: 10, halign: 'center' },
+                        1: { cellWidth: 50 },
+                        2: { cellWidth: 30, halign: 'right' },
+                        3: { cellWidth: 20, halign: 'center' },
+                        4: { cellWidth: 65 },
+                        5: { cellWidth: 45 },
+                        6: { cellWidth: 45, halign: 'center' }
+                    },
+                    styles: {
+                        font: "helvetica",
+                        lineColor: [230, 230, 230],
+                        lineWidth: 0.1
+                    },
+                    margin: { left: 14, right: 14 },
+                    didDrawPage: function(data) {
+                        doc.setFont("helvetica", "italic");
+                        doc.setFontSize(8);
+                        doc.setTextColor(150, 150, 150);
+                        doc.text(`Halaman ${data.pageNumber} dari ${doc.internal.getNumberOfPages()}`, 14, doc.internal.pageSize.height - 10);
+                        doc.text("Sistem Survei Harga Pasar Premium - Satelit Pusat", doc.internal.pageSize.width - 85, doc.internal.pageSize.height - 10);
+                    }
+                });
+                
+                doc.save(`Laporan_Survei_Harga_Global_${filterDesc.replace(/\s+/g, "_")}.pdf`);
+                showAlert("Sukses Ekspor", "Laporan PDF A4 berhasil diunduh!");
+            } catch (err) {
+                console.error(err);
+                showAlert("Gagal Ekspor", "Terjadi kesalahan saat mengekspor ke PDF.");
+            }
+        }
+
+        function copyRekapWA() {
+            if (!db) return;
+            db.transaction("surveys", "readonly").objectStore("surveys").getAll().onsuccess = (e) => {
+                const list = e.target.result; if (list.length === 0) return showAlert("Data Kosong", "Belum ada barang untuk direkap minggu ini.");
+                const text = generateRekapText(list);
+                
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(text).then(() => showAlert("Sukses Disalin", "Tinggal tempel (paste) di WhatsApp grup!"));
+                } else {
+                    let ta = document.createElement("textarea"); 
+                    ta.value = text; 
+                    document.body.appendChild(ta); 
+                    ta.select(); 
+                    document.execCommand('copy'); 
+                    document.body.removeChild(ta);
+                    showAlert("Sukses Disalin", "Tinggal tempel (paste) di WhatsApp grup!");
+                }
+            }
+        }
+        
+        function bersihkanSesi() {
+            showConfirm("Mulai Sesi Baru?", "Menghapus riwayat di HP ini agar bersih untuk survei minggu depan. Data di satelit pusat tetap aman.", () => {
+                db.transaction("surveys", "readwrite").objectStore("surveys").clear().oncomplete = () => { 
+                    closeRekap(); 
+                    setTimeout(() => showAlert("Sesi Berhasil Direset", "Ruang penyimpanan HP kembali bersih. Siap digunakan lagi."), 400);
+                };
+            });
+        }
+
+        // =========================================================
+        // FITUR SEMBUNYIKAN / TAMPILKAN INPUT (HIDE/UNHIDE)
+        // =========================================================
+        let isInputsCollapsed = localStorage.getItem('mhy_inputs_collapsed') === 'true';
+
+        function initInputToggleState() {
+            const group = document.querySelector('.input-group');
+            const btn = document.getElementById('toggle-inputs-btn');
+            if (!group || !btn) return;
+
+            if (isInputsCollapsed) {
+                group.classList.add('collapsed');
+                btn.classList.add('hidden-state');
+                btn.innerHTML = `
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                        <line x1="1" y1="1" x2="23" y2="23"></line>
+                    </svg>
+                `;
+            } else {
+                group.classList.remove('collapsed');
+                btn.classList.remove('hidden-state');
+                btn.innerHTML = `
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                `;
+            }
+        }
+
+        function toggleInputFields() {
+            isInputsCollapsed = !isInputsCollapsed;
+            localStorage.setItem('mhy_inputs_collapsed', isInputsCollapsed ? 'true' : 'false');
+            initInputToggleState();
+        }
+
+        // =========================================================
+        // FITUR KONTROL FLASH (TORCH / LAMPU KILAT)
+        // =========================================================
+        async function toggleFlash() {
+            if (!currentStream) {
+                showAlert("Kamera Mati", "Aktifkan kamera terlebih dahulu untuk menggunakan flash.");
+                return;
+            }
+            const videoTrack = currentStream.getVideoTracks()[0];
+            if (!videoTrack) {
+                showAlert("Error", "Garis kamera tidak ditemukan.");
+                return;
+            }
+
+            const capabilities = typeof videoTrack.getCapabilities === 'function' ? videoTrack.getCapabilities() : {};
+            if (!capabilities.torch) {
+                showAlert("Flash Tidak Didukung", "Fitur lampu kilat (torch) tidak didukung oleh browser, kamera, atau perangkat ini.");
+                return;
+            }
+
+            try {
+                isFlashActive = !isFlashActive;
+                await videoTrack.applyConstraints({
+                    advanced: [{ torch: isFlashActive }]
+                });
+
+                const btn = document.getElementById('toggle-flash-btn');
+                if (btn) {
+                    if (isFlashActive) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                }
+            } catch (err) {
+                console.error("Gagal mengubah status flash:", err);
+                showAlert("Kesalahan", "Gagal mengontrol lampu kilat.");
+                isFlashActive = false;
+                const btn = document.getElementById('toggle-flash-btn');
+                if (btn) btn.classList.remove('active');
+            }
+        }
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker (Sistem Offline) siap.'))
+                    .catch(err => console.log('Gagal pasang SW: ', err));
+            });
+        }
+        window.onload = startApp;
+    </script>
+</body>
+</html>
