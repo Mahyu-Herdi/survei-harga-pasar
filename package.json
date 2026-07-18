@@ -1,0 +1,15 @@
+{
+  "name": "survei-harga-pasar",
+  "version": "1.0.0",
+  "description": "Aplikasi survei harga pasar premium",
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "build": "echo 'No build required for pure HTML static app server'",
+    "lint": "echo 'No lint required'",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
