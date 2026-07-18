@@ -1,6 +1,0 @@
-{
-  "name": "Survei Harga Pasar",
-  "description": "Aplikasi survei harga pasar premium dengan jepret foto kamera, pencatatan lokasi GPS otomatis, tabel rekap, riwayat lokal, dan pengiriman laporan via WhatsApp.",
-  "requestFramePermissions": ["camera", "geolocation"],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
