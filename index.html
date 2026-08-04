@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Dinonaktifkan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background-color: #050508;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+            color: #ffffff;
+        }
+
+        /* Ambient Neon Glow Background Lights */
+        .neon-bg-1 {
+            position: absolute;
+            width: 550px;
+            height: 550px;
+            background: radial-gradient(circle, rgba(255, 0, 110, 0.45) 0%, rgba(255, 0, 110, 0) 70%);
+            top: 25%;
+            left: 30%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            filter: blur(90px);
+            animation: pulseGlow1 6s ease-in-out infinite alternate;
+            z-index: 1;
+        }
+
+        .neon-bg-2 {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(0, 229, 255, 0.4) 0%, rgba(0, 229, 255, 0) 70%);
+            bottom: 20%;
+            right: 25%;
+            transform: translate(50%, 50%);
+            border-radius: 50%;
+            filter: blur(100px);
+            animation: pulseGlow2 7s ease-in-out infinite alternate;
+            z-index: 1;
+        }
+
+        .neon-bg-3 {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(138, 43, 226, 0.5) 0%, rgba(138, 43, 226, 0) 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            filter: blur(80px);
+            animation: pulseGlow3 5s ease-in-out infinite alternate;
+            z-index: 1;
+        }
+
+        @keyframes pulseGlow1 {
+            0% { opacity: 0.5; transform: translate(-50%, -50%) scale(0.9); }
+            100% { opacity: 0.95; transform: translate(-50%, -50%) scale(1.2); }
+        }
+
+        @keyframes pulseGlow2 {
+            0% { opacity: 0.4; transform: translate(50%, 50%) scale(1.15); }
+            100% { opacity: 0.85; transform: translate(50%, 50%) scale(0.85); }
+        }
+
+        @keyframes pulseGlow3 {
+            0% { opacity: 0.3; transform: translate(-50%, -50%) scale(0.8); }
+            100% { opacity: 0.75; transform: translate(-50%, -50%) scale(1.25); }
+        }
+
+        /* Grid Pattern Overlay */
+        .bg-grid {
+            position: absolute;
+            inset: 0;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* Glassmorphism Card Screen */
+        .screen-card {
+            position: relative;
+            z-index: 10;
+            max-width: 600px;
+            width: 90%;
+            padding: 3.5rem 2.5rem;
+            background: rgba(12, 12, 18, 0.7);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border-radius: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            text-align: center;
+            box-shadow: 
+                0 20px 50px rgba(0, 0, 0, 0.8),
+                0 0 40px rgba(255, 0, 110, 0.25),
+                inset 0 0 20px rgba(255, 255, 255, 0.05);
+            animation: floatScreen 6s ease-in-out infinite alternate;
+        }
+
+        @keyframes floatScreen {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-10px); }
+        }
+
+        /* Neon Icon Outer Frame */
+        .icon-container {
+            position: relative;
+            width: 105px;
+            height: 105px;
+            margin: 0 auto 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 0, 110, 0.1);
+            border-radius: 50%;
+            border: 2px solid #ff006e;
+            box-shadow: 
+                0 0 20px rgba(255, 0, 110, 0.6),
+                inset 0 0 15px rgba(255, 0, 110, 0.4);
+            animation: neonPulse 2s infinite alternate;
+        }
+
+        .icon-container svg {
+            width: 52px;
+            height: 52px;
+            fill: none;
+            stroke: #ff006e;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(0 0 10px #ff006e);
+        }
+
+        @keyframes neonPulse {
+            0% {
+                box-shadow: 0 0 15px rgba(255, 0, 110, 0.5), inset 0 0 10px rgba(255, 0, 110, 0.3);
+                border-color: rgba(255, 0, 110, 0.6);
+            }
+            100% {
+                box-shadow: 0 0 35px rgba(255, 0, 110, 0.95), inset 0 0 25px rgba(255, 0, 110, 0.7);
+                border-color: rgba(255, 0, 110, 1);
+            }
+        }
+
+        /* Title with Neon Glow Text Shadow */
+        .title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #ffffff;
+            margin-bottom: 1rem;
+            text-shadow: 
+                0 0 5px #fff,
+                0 0 10px #ff006e,
+                0 0 20px #ff006e,
+                0 0 40px #ff006e,
+                0 0 80px #ff006e;
+        }
+
+        /* Developer Tag */
+        .dev-badge {
+            display: inline-block;
+            margin-bottom: 1.8rem;
+            padding: 0.5rem 1.4rem;
+            background: rgba(0, 229, 255, 0.08);
+            border: 1px solid rgba(0, 229, 255, 0.5);
+            border-radius: 50px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #00e5ff;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px rgba(0, 229, 255, 0.7);
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.25);
+        }
+
+        /* Description Body */
+        .description {
+            font-size: 1.08rem;
+            line-height: 1.6;
+            color: #cbd5e1;
+            margin-bottom: 2.2rem;
+            font-weight: 400;
+        }
+
+        /* Neon Action Button */
+        .cta-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 1rem 2.2rem;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #050508;
+            background: linear-gradient(135deg, #00e5ff, #0088ff);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 
+                0 0 20px rgba(0, 229, 255, 0.6),
+                0 0 40px rgba(0, 229, 255, 0.25);
+        }
+
+        .cta-btn:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 
+                0 0 35px rgba(0, 229, 255, 0.9),
+                0 0 70px rgba(0, 229, 255, 0.5);
+            background: linear-gradient(135deg, #33ebff, #1a94ff);
+        }
+
+        .cta-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        /* Footer Status Indicator */
+        .status-footer {
+            margin-top: 2.2rem;
+            padding-top: 1.2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #ff006e;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #ff006e;
+            animation: blink 1.5s infinite alternate;
+        }
+
+        @keyframes blink {
+            0% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+
+        @media (max-width: 480px) {
+            .screen-card {
+                padding: 2.5rem 1.5rem;
+            }
+            .title {
+                font-size: 1.6rem;
+            }
+            .description {
+                font-size: 0.98rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Neon Background Ambient Lights -->
+    <div class="neon-bg-1"></div>
+    <div class="neon-bg-2"></div>
+    <div class="neon-bg-3"></div>
+    
+    <!-- Background Grid Pattern -->
+    <div class="bg-grid"></div>
+
+    <!-- Main Card Screen -->
+    <div class="screen-card">
+        
+        <!-- SVG Icon (Lock System) -->
+        <div class="icon-container">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                <circle cx="12" cy="16" r="1.5" fill="#ff006e"></circle>
+                <path d="M12 17.5V19.5" stroke="#ff006e" stroke-width="2"></path>
+            </svg>
+        </div>
+
+        <!-- Title -->
+        <h1 class="title">Sistem Dinonaktifkan</h1>
+
+        <!-- Developer Credit Badge -->
+        <div class="dev-badge">
+            💻 Oleh: Mahyu Herdi Developer
+        </div>
+
+        <!-- Description Message -->
+        <p class="description">
+            Akses menuju sistem ini saat ini nonaktif. Silakan hubungi developer untuk melakukan pembelian atau aktivasi lisensi sistem ini.
+        </p>
+
+        <!-- Call to Action Contact Button -->
+        <a href="https://wa.me/" target="_blank" class="cta-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+            </svg>
+            Hubungi Developer
+        </a>
+
+        <!-- Status Indicator Footer -->
+        <div class="status-footer">
+            <div class="status-dot"></div>
+            <span>Status: System Offline / License Required</span>
+        </div>
+
+    </div>
+
+</body>
+</html>
