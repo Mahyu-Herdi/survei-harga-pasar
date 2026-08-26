@@ -9,6 +9,17 @@
     <link rel="apple-touch-icon" href="./icon-192.png">
     <meta name="theme-color" content="#000000">
 
+    <!-- ============================================== -->
+    <!-- PENGATURAN MAINTENANCE                         -->
+    <!-- Ubah IS_MAINTENANCE ke 'true' untuk aktifkan   -->
+    <!-- ============================================== -->
+    <script>
+        const IS_MAINTENANCE = false; // <-- UBAH KE TRUE UNTUK MAINTENANCE
+        if (IS_MAINTENANCE) {
+            window.location.href = './maintenance.html';
+        }
+    </script>
+
     <!-- Library Ekspor Excel & PDF -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1292,10 +1303,13 @@
                     video: { facingMode: 'environment', width: {ideal: 1920}, height: {ideal: 1080} } 
                 });
                 video.srcObject = stream;
+                // Add play() to ensure it starts playing on mobile/safari
+                video.play().catch(e => console.error('Play failed:', e));
                 currentStream = stream;
                 status.innerText = "Kamera Aktif • Mencari GPS...";
                 isCameraActive = true;
             } catch (e) {
+                console.error("Camera error:", e);
                 status.innerText = "Kamera Ditolak / Mode Offline";
             }
 

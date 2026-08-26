@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "serve -p 3000 .",
-    "build": "mkdir -p dist && cp -r icon-192.png index.html maintenance manifest.json sw.js dist/"
+    "build": "mkdir -p dist && cp index.html dist/ && cp public/* dist/"
   },
   "dependencies": {
     "serve": "^14.2.4"
