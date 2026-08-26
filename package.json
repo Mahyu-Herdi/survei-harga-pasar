@@ -1,0 +1,12 @@
+{
+  "name": "survei-harga-pasar",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "serve -p 3000 .",
+    "build": "mkdir -p dist && cp -r icon-192.png index.html maintenance manifest.json sw.js dist/"
+  },
+  "dependencies": {
+    "serve": "^14.2.4"
+  }
+}
