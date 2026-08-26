@@ -9,17 +9,6 @@
     <link rel="apple-touch-icon" href="./icon-192.png">
     <meta name="theme-color" content="#000000">
 
-    <!-- ============================================== -->
-    <!-- PENGATURAN MAINTENANCE                         -->
-    <!-- Ubah IS_MAINTENANCE ke 'true' untuk aktifkan   -->
-    <!-- ============================================== -->
-    <script>
-        const IS_MAINTENANCE = false; // <-- UBAH KE TRUE UNTUK MAINTENANCE
-        if (IS_MAINTENANCE) {
-            window.location.href = './maintenance.html';
-        }
-    </script>
-
     <!-- Library Ekspor Excel & PDF -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -614,6 +603,77 @@
     .hide-scroll::-webkit-scrollbar { display: none; }
 .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
 </style>
+
+    
+    <!-- KONTROL MAINTENANCE -->
+    <script>
+        // KETIK true UNTUK MENGAKTIFKAN MAINTENANCE, ATAU false UNTUK MEMATIKAN
+        const IS_MAINTENANCE = false;
+
+        if (IS_MAINTENANCE) {
+            document.addEventListener('DOMContentLoaded', () => {
+                document.body.innerHTML = `
+                    <div class="maintenance-overlay">
+                        <div class="liquid-blob-1"></div>
+                        <div class="liquid-blob-2"></div>
+                        <div class="liquid-blob-3"></div>
+
+                        <div class="glass-card">
+                            <div class="icon-container">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                </svg>
+                            </div>
+                            <h1 class="title">Sistem Dinonaktifkan</h1>
+                            <div class="dev-badge">💻 Oleh: Mahyu Herdi Developer</div>
+                            <p class="description">Akses menuju sistem ini saat ini nonaktif. Silakan hubungi developer untuk melakukan pembelian atau aktivasi lisensi sistem ini.</p>
+                            <a href="https://wa.me/6281294379909" target="_blank" class="cta-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#ffffff" width="24" height="24">
+                                    <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                                </svg>
+                                <span>Hubungi Developer</span>
+                            </a>
+                            <div class="status-footer">
+                                <div class="status-dot"></div>
+                                <span>Status: System Offline / License Required</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+    </script>
+    <style>
+        .maintenance-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #050508;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden; z-index: 9999999; color: #ffffff;
+        }
+        .liquid-blob-1 { position: absolute; width: 450px; height: 450px; background: linear-gradient(135deg, rgba(56, 189, 248, 0.5) 0%, rgba(56, 189, 248, 0) 70%); top: 20%; left: 25%; transform: translate(-50%, -50%); border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; filter: blur(80px); animation: maintenanceLiquidFlow 12s ease-in-out infinite alternate; z-index: 1; }
+        .liquid-blob-2 { position: absolute; width: 500px; height: 500px; background: linear-gradient(135deg, rgba(167, 139, 250, 0.45) 0%, rgba(167, 139, 250, 0) 70%); bottom: 15%; right: 20%; transform: translate(50%, 50%); border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; filter: blur(90px); animation: maintenanceLiquidFlow 15s ease-in-out infinite alternate-reverse; z-index: 1; }
+        .liquid-blob-3 { position: absolute; width: 350px; height: 350px; background: linear-gradient(135deg, rgba(236, 72, 153, 0.35) 0%, rgba(236, 72, 153, 0) 70%); top: 60%; left: 55%; transform: translate(-50%, -50%); border-radius: 50% 50% 40% 60% / 50% 40% 60% 50%; filter: blur(70px); animation: maintenanceLiquidFlow 10s ease-in-out infinite alternate; z-index: 1; }
+        @keyframes maintenanceLiquidFlow { 0% { transform: translate(-50%, -50%) rotate(0deg) scale(0.9); border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; } 50% { transform: translate(-45%, -55%) rotate(180deg) scale(1.1); border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; } 100% { transform: translate(-50%, -50%) rotate(360deg) scale(1); border-radius: 50% 50% 40% 60% / 50% 40% 60% 50%; } }
+        .glass-card { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(32px) saturate(150%); -webkit-backdrop-filter: blur(32px) saturate(150%); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 40px; padding: 56px 40px; max-width: 460px; width: 90%; z-index: 10; text-align: center; box-shadow: 0 32px 64px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.05); display: flex; flex-direction: column; align-items: center; position: relative; overflow: hidden; }
+        .glass-card::before { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(to right, transparent, rgba(255,255,255,0.05), transparent); transform: skewX(-20deg); animation: glassShine 8s infinite; }
+        @keyframes glassShine { 0%, 70% { left: -100%; } 100% { left: 200%; } }
+        .icon-container { width: 96px; height: 96px; background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #38bdf8; box-shadow: inset 0 2px 4px rgba(255,255,255,0.2), 0 8px 16px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); margin-bottom: 24px; }
+        .icon-container svg { width: 48px; height: 48px; filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.5)); }
+        .title { font-size: 32px; font-weight: 800; letter-spacing: -0.5px; margin: 0 0 12px 0; background: linear-gradient(to right, #ffffff, #a78bfa, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .dev-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(255, 255, 255, 0.05); padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; letter-spacing: 0.5px; color: rgba(255, 255, 255, 0.8); border: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 24px; }
+        .description { font-size: 16px; color: rgba(255, 255, 255, 0.6); line-height: 1.6; margin: 0 0 32px 0; }
+        .cta-btn { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; padding: 18px; background: linear-gradient(135deg, rgba(56, 189, 248, 0.2) 0%, rgba(167, 139, 250, 0.2) 100%); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 24px; color: #ffffff; font-size: 16px; font-weight: 700; text-decoration: none; transition: all 0.3s ease; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); position: relative; overflow: hidden; }
+        .cta-btn::after { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(56, 189, 248, 0.4) 0%, rgba(167, 139, 250, 0.4) 100%); opacity: 0; transition: opacity 0.3s ease; }
+        .cta-btn:hover::after { opacity: 1; }
+        .cta-btn svg, .cta-btn span { z-index: 1; }
+        .status-footer { margin-top: 32px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; color: rgba(255, 255, 255, 0.4); font-weight: 500; }
+        .status-dot { width: 8px; height: 8px; background-color: #f43f5e; border-radius: 50%; box-shadow: 0 0 12px #f43f5e; animation: pulseDot 2s infinite; }
+        @keyframes pulseDot { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(244, 63, 94, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(244, 63, 94, 0); } }
+    </style>
+
+
 </head>
 <body>
 
@@ -1303,13 +1363,10 @@
                     video: { facingMode: 'environment', width: {ideal: 1920}, height: {ideal: 1080} } 
                 });
                 video.srcObject = stream;
-                // Add play() to ensure it starts playing on mobile/safari
-                video.play().catch(e => console.error('Play failed:', e));
                 currentStream = stream;
                 status.innerText = "Kamera Aktif • Mencari GPS...";
                 isCameraActive = true;
             } catch (e) {
-                console.error("Camera error:", e);
                 status.innerText = "Kamera Ditolak / Mode Offline";
             }
 
@@ -3466,7 +3523,7 @@
                     .catch(err => console.log('Gagal pasang SW: ', err));
             });
         }
-        window.onload = startApp;
+        window.onload = () => { if (typeof IS_MAINTENANCE !== "undefined" && IS_MAINTENANCE) return; startApp(); };
     </script>
 </body>
 </html>
