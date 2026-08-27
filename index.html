@@ -1567,6 +1567,60 @@
         };
         request.onsuccess = (e) => { db = e.target.result; };
 
+        async function startCamera() {
+            if (currentStream && currentStream.active) return;
+            // Jika sedang melihat hasil jepretan foto, jangan aktifkan kamera
+            if (preview && preview.style.display === 'block') return;
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment', width: {ideal: 1920}, height: {ideal: 1080} } 
+                });
+                video.srcObject = stream;
+                currentStream = stream;
+                isCameraActive = true;
+                if (status) status.innerText = "Kamera Aktif • Siap Survei";
+            } catch (e) {
+                console.warn("Gagal membuka kamera:", e);
+                isCameraActive = false;
+                if (status) status.innerText = "Kamera Ditolak / Mode Offline";
+            }
+        }
+
+        function stopCamera() {
+            if (isFlashActive) {
+                isFlashActive = false;
+                const btn = document.getElementById('toggle-flash-btn');
+                if (btn) btn.classList.remove('active');
+            }
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => {
+                    try { track.stop(); } catch(e){}
+                });
+                currentStream = null;
+            }
+            if (video) {
+                video.srcObject = null;
+            }
+            isCameraActive = false;
+            if (preview && preview.style.display !== 'block' && status) {
+                status.innerText = "Kamera Dijeda • Tab Tidak Aktif";
+            }
+        }
+
+        // Matikan kamera otomatis saat user pindah tab / aplikasi diminimalkan untuk hemat baterai & anti-lag
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                stopCamera();
+            } else {
+                if (typeof IS_MAINTENANCE !== "undefined" && IS_MAINTENANCE) return;
+                startCamera();
+            }
+        });
+
+        window.addEventListener('pagehide', stopCamera);
+        window.addEventListener('beforeunload', stopCamera);
+
         async function startApp() {
             initInputToggleState();
             renderDatalist(); // Biar list barang langsung muncul pas aplikasi buka
@@ -1577,17 +1631,7 @@
                 document.getElementById('lokasi').value = cachedLokasi;
             }
 
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: 'environment', width: {ideal: 1920}, height: {ideal: 1080} } 
-                });
-                video.srcObject = stream;
-                currentStream = stream;
-                status.innerText = "Kamera Aktif • Mencari GPS...";
-                isCameraActive = true;
-            } catch (e) {
-                status.innerText = "Kamera Ditolak / Mode Offline";
-            }
+            await startCamera();
 
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(async (pos) => {
@@ -2714,7 +2758,12 @@
             document.getElementById('barang').value = ""; document.getElementById('harga').value = ""; document.getElementById('satuan').value = "";
             preview.style.display = 'none'; video.style.display = 'block';
             snapBtn.style.display = 'block'; document.getElementById('action-area').style.display = 'none';
-            status.innerText = "Kamera Siap • Arahkan ke target";
+            
+            if (!isCameraActive && !document.hidden) {
+                startCamera();
+            } else {
+                status.innerText = "Kamera Siap • Arahkan ke target";
+            }
             
             // FOKUS BALIK KE INPUT BARANG BIAR LANGSUNG NGETIK
             document.getElementById("barang").focus();
