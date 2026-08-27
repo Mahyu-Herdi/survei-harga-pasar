@@ -2578,37 +2578,37 @@
             const startY = 1600 - boxH - 40;
             const cornerRadius = 44;
 
-            // ===============================================
-            // 3D FLOATING CONVEX BUBBLE GLASSMORPHISM
-            // ===============================================
+            // ==============================================================
+            // IPHONE 17 PRO MAX LIQUID GLASSMORPHISM RENDERING
+            // ==============================================================
 
-            // 1. Double-Layer 3D Floating Elevation Shadow (Mengambang 3D)
+            // 1. Dual-Stage Floating Elevation Drop Shadow (Apple Vision/iOS Depth)
             ctx.save();
-            ctx.shadowColor = "rgba(0, 0, 0, 0.58)";
-            ctx.shadowBlur = 52;
-            ctx.shadowOffsetY = 26;
+            ctx.shadowColor = "rgba(0, 0, 0, 0.50)";
+            ctx.shadowBlur = 46;
+            ctx.shadowOffsetY = 22;
             ctx.beginPath();
             ctx.roundRect(startX, startY, boxW, boxH, cornerRadius);
-            ctx.fillStyle = "rgba(8, 10, 16, 0.30)";
+            ctx.fillStyle = "rgba(10, 10, 15, 0.35)";
             ctx.fill();
 
-            ctx.shadowColor = "rgba(0, 0, 0, 0.35)";
-            ctx.shadowBlur = 16;
-            ctx.shadowOffsetY = 8;
+            ctx.shadowColor = "rgba(0, 0, 0, 0.30)";
+            ctx.shadowBlur = 14;
+            ctx.shadowOffsetY = 6;
             ctx.beginPath();
             ctx.roundRect(startX, startY, boxW, boxH, cornerRadius);
-            ctx.fillStyle = "rgba(8, 10, 16, 0.20)";
+            ctx.fillStyle = "rgba(10, 10, 15, 0.20)";
             ctx.fill();
             ctx.restore();
 
-            // 2. Frosted Backdrop Blur & Liquid Refraction
+            // 2. Frosted Backdrop Blur & Liquid Glass Substrate
             ctx.save();
             ctx.beginPath();
             ctx.roundRect(startX, startY, boxW, boxH, cornerRadius);
-            ctx.clip(); // Clip area frosted
+            ctx.clip(); // Clip area frosted glass
 
-            // High-pass Gaussian blur filter
-            ctx.filter = 'blur(22px) saturate(175%) brightness(102%) contrast(105%)';
+            // High-precision Gaussian blur filter for backdrop
+            ctx.filter = 'blur(22px) saturate(180%) brightness(104%) contrast(105%)';
             if (isCameraActive) {
                 const sW = video.videoWidth; const sH = video.videoHeight;
                 let cW, cH, sx, sy;
@@ -2620,78 +2620,71 @@
             }
             ctx.filter = 'none';
 
-            // Volumetric Convex Glass Tint: radial falloff from protruding center to dense dark edges
-            const convexCenterX = startX + (boxW * 0.48);
-            const convexCenterY = startY + (boxH * 0.32);
-            const bubbleRadial = ctx.createRadialGradient(convexCenterX, convexCenterY, 20, convexCenterX, convexCenterY, boxW * 0.72);
-            bubbleRadial.addColorStop(0, "rgba(35, 30, 44, 0.46)");   // Luminous thin convex crest
-            bubbleRadial.addColorStop(0.55, "rgba(20, 18, 28, 0.62)"); // Curved body
-            bubbleRadial.addColorStop(1, "rgba(8, 7, 14, 0.82)");     // Dense thick outer perimeter
-            ctx.fillStyle = bubbleRadial;
+            // Liquid Glass Translucent Gradient Substrate
+            const glassSubstrate = ctx.createLinearGradient(startX, startY, startX + boxW, startY + boxH);
+            glassSubstrate.addColorStop(0, "rgba(28, 24, 38, 0.55)");
+            glassSubstrate.addColorStop(0.5, "rgba(18, 16, 26, 0.62)");
+            glassSubstrate.addColorStop(1, "rgba(10, 9, 16, 0.75)");
+            ctx.fillStyle = glassSubstrate;
             ctx.fill();
 
-            // 3D Convex Bubble Dome Highlight (Glow cembung membulat ke atas)
-            const domeHighlight = ctx.createRadialGradient(convexCenterX, convexCenterY, 5, convexCenterX, convexCenterY, boxW * 0.50);
-            domeHighlight.addColorStop(0, "rgba(255, 255, 255, 0.32)");
-            domeHighlight.addColorStop(0.25, "rgba(255, 255, 255, 0.12)");
-            domeHighlight.addColorStop(0.65, "rgba(255, 255, 255, 0.02)");
-            domeHighlight.addColorStop(1, "rgba(255, 255, 255, 0.0)");
-            ctx.fillStyle = domeHighlight;
+            // Liquid Diagonal Specular Sheen (Apple glossy liquid finish)
+            const liquidSheen = ctx.createLinearGradient(startX, startY, startX + (boxW * 0.8), startY + (boxH * 0.8));
+            liquidSheen.addColorStop(0, "rgba(255, 255, 255, 0.20)");
+            liquidSheen.addColorStop(0.35, "rgba(255, 255, 255, 0.06)");
+            liquidSheen.addColorStop(0.7, "rgba(255, 255, 255, 0.01)");
+            liquidSheen.addColorStop(1, "rgba(255, 255, 255, 0.0)");
+            ctx.fillStyle = liquidSheen;
             ctx.fill();
 
-            // Top Curved Specular Glare (Pantulan glossy lengkung gelembung atas)
-            ctx.save();
-            ctx.beginPath();
-            ctx.ellipse(startX + (boxW * 0.5), startY + 22, boxW * 0.42, 18, 0, 0, Math.PI * 2);
-            const topGlareGrad = ctx.createLinearGradient(startX, startY, startX, startY + 40);
-            topGlareGrad.addColorStop(0, "rgba(255, 255, 255, 0.38)");
-            topGlareGrad.addColorStop(0.6, "rgba(255, 255, 255, 0.12)");
-            topGlareGrad.addColorStop(1, "rgba(255, 255, 255, 0.0)");
-            ctx.fillStyle = topGlareGrad;
+            // Top Specular Reflection Bar (Tepi bias cahaya atas khas kaca iPhone)
+            const topReflection = ctx.createLinearGradient(startX, startY, startX, startY + 45);
+            topReflection.addColorStop(0, "rgba(255, 255, 255, 0.32)");
+            topReflection.addColorStop(0.5, "rgba(255, 255, 255, 0.08)");
+            topReflection.addColorStop(1, "rgba(255, 255, 255, 0.0)");
+            ctx.fillStyle = topReflection;
             ctx.fill();
-            ctx.restore();
 
-            // Bottom Upward Refraction Bounce (Pantulan refraksi dasar gelembung)
-            const bottomBounce = ctx.createLinearGradient(startX, startY + boxH, startX, startY + boxH - 55);
-            bottomBounce.addColorStop(0, "rgba(255, 255, 255, 0.18)");
-            bottomBounce.addColorStop(0.5, "rgba(255, 255, 255, 0.05)");
-            bottomBounce.addColorStop(1, "rgba(255, 255, 255, 0.0)");
-            ctx.fillStyle = bottomBounce;
+            // Bottom Ambient Refraction Glow
+            const bottomGlow = ctx.createLinearGradient(startX, startY + boxH, startX, startY + boxH - 40);
+            bottomGlow.addColorStop(0, "rgba(255, 255, 255, 0.12)");
+            bottomGlow.addColorStop(1, "rgba(255, 255, 255, 0.0)");
+            ctx.fillStyle = bottomGlow;
             ctx.fill();
 
             ctx.restore(); // Restore clip
 
-            // 3. 3D Embossed Prismatic Bubble Rim (Border Kaca Timbul 3D)
+            // 3. Apple Prismatic Optical Edge Refraction (Border Kaca Presisi)
             ctx.save();
             ctx.beginPath();
             ctx.roundRect(startX, startY, boxW, boxH, cornerRadius);
             const borderGrad = ctx.createLinearGradient(startX, startY, startX + boxW, startY + boxH);
-            borderGrad.addColorStop(0, "rgba(255, 255, 255, 0.85)");
-            borderGrad.addColorStop(0.25, "rgba(255, 255, 255, 0.45)");
-            borderGrad.addColorStop(0.7, "rgba(255, 255, 255, 0.12)");
-            borderGrad.addColorStop(1, "rgba(255, 255, 255, 0.42)");
-            ctx.lineWidth = 1.6;
+            borderGrad.addColorStop(0, "rgba(255, 255, 255, 0.85)");   // Refleksi sudut kiri atas
+            borderGrad.addColorStop(0.2, "rgba(255, 255, 255, 0.50)");
+            borderGrad.addColorStop(0.6, "rgba(255, 255, 255, 0.18)");
+            borderGrad.addColorStop(1, "rgba(255, 255, 255, 0.35)");
+            ctx.lineWidth = 1.5;
             ctx.strokeStyle = borderGrad;
             ctx.stroke();
 
-            // Inner Convex Bevel Ridge
+            // Inner Bevel Micro-Highlight (Refraksi bevel dalam 1px)
             ctx.beginPath();
             ctx.roundRect(startX + 1.2, startY + 1.2, boxW - 2.4, boxH - 2.4, cornerRadius - 1.2);
             const innerBevel = ctx.createLinearGradient(startX, startY, startX, startY + boxH);
-            innerBevel.addColorStop(0, "rgba(255, 255, 255, 0.22)");
-            innerBevel.addColorStop(0.4, "rgba(255, 255, 255, 0.06)");
-            innerBevel.addColorStop(1, "rgba(255, 255, 255, 0.10)");
+            innerBevel.addColorStop(0, "rgba(255, 255, 255, 0.28)");
+            innerBevel.addColorStop(0.4, "rgba(255, 255, 255, 0.04)");
+            innerBevel.addColorStop(1, "rgba(255, 255, 255, 0.08)");
             ctx.lineWidth = 0.8;
             ctx.strokeStyle = innerBevel;
             ctx.stroke();
             ctx.restore();
 
-            // 4. Render teks label dengan bayangan lembut untuk legibilitas maksimal
+            // 4. Typography High Legibility with Subtle Text Shadow
             ctx.save();
             ctx.textBaseline = "top";
-            ctx.shadowColor = "rgba(0, 0, 0, 0.50)";
-            ctx.shadowBlur = 5;
-            ctx.shadowOffsetY = 1.5;
+            ctx.shadowColor = "rgba(0, 0, 0, 0.55)";
+            ctx.shadowBlur = 6;
+            ctx.shadowOffsetY = 2;
             let currentY = startY + padY;
             lines.forEach(line => {
                 ctx.font = line.font;
