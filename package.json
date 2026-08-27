@@ -3,10 +3,12 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "serve -p 3000 .",
-    "build": "mkdir -p dist && cp -r icon-192.png icon-512.png index.html maintenance maintenance.html manifest.json sw.js dist/"
+    "dev": "node server.js",
+    "build": "mkdir -p dist && cp -r icon-192.png icon-512.png index.html maintenance maintenance.html manifest.json sw.js dist/",
+    "start": "node server.js"
   },
   "dependencies": {
+    "express": "^5.2.1",
     "serve": "^14.2.4"
   }
 }
