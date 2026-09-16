@@ -1525,6 +1525,90 @@
         }
 
         // =========================================================
+        // FITUR REKOMENDASI HARGA & SATUAN OTOMATIS BERDASARKAN RIWAYAT
+        // =========================================================
+        function cariRekomendasiBarang(inputVal, callback) {
+            if (!db || !inputVal) return callback(null);
+            try {
+                const tx = db.transaction("surveys", "readonly");
+                const store = tx.objectStore("surveys");
+                const req = store.getAll();
+                req.onsuccess = (e) => {
+                    const list = e.target.result;
+                    if (!list || list.length === 0) return callback(null);
+                    // Sort descending berdasarkan ID (paling baru dulu)
+                    list.sort((a, b) => b.id.localeCompare(a.id));
+                    const match = list.find(item => item.nama && item.nama.trim().toLowerCase() === inputVal.trim().toLowerCase());
+                    callback(match);
+                };
+                req.onerror = () => callback(null);
+            } catch (err) {
+                console.error("Gagal membaca rekomendasi:", err);
+                callback(null);
+            }
+        }
+
+        function highlightAutoFilledFields(...inputs) {
+            inputs.forEach(input => {
+                if (!input) return;
+                input.style.transition = 'all 0.3s ease';
+                input.style.boxShadow = '0 0 12px rgba(56, 189, 248, 0.45)';
+                input.style.borderColor = '#38bdf8';
+                setTimeout(() => {
+                    input.style.boxShadow = '';
+                    input.style.borderColor = '';
+                }, 1200);
+            });
+        }
+
+        function initAutoRekomListeners() {
+            const barangInput = document.getElementById('barang');
+            if (barangInput) {
+                barangInput.addEventListener('input', (e) => {
+                    const val = e.target.value.trim();
+                    cariRekomendasiBarang(val, (match) => {
+                        if (match) {
+                            const inputHarga = document.getElementById('harga');
+                            const inputSatuan = document.getElementById('satuan');
+                            if (inputHarga) {
+                                inputHarga.value = match.harga || "";
+                                formatRupiah(inputHarga);
+                            }
+                            if (inputSatuan) {
+                                inputSatuan.value = match.satuan || "";
+                            }
+                            highlightAutoFilledFields(inputHarga, inputSatuan);
+                        }
+                    });
+                });
+            }
+
+            const modalBarangInput = document.getElementById('modal-barang');
+            if (modalBarangInput) {
+                modalBarangInput.addEventListener('input', (e) => {
+                    const val = e.target.value.trim();
+                    cariRekomendasiBarang(val, (match) => {
+                        if (match) {
+                            const inputHarga = document.getElementById('modal-harga');
+                            const inputSatuan = document.getElementById('modal-satuan');
+                            if (inputHarga) {
+                                inputHarga.value = match.harga || "";
+                                formatRupiah(inputHarga);
+                            }
+                            if (inputSatuan) {
+                                inputSatuan.value = match.satuan || "";
+                            }
+                            highlightAutoFilledFields(inputHarga, inputSatuan);
+                        }
+                    });
+                });
+            }
+        }
+
+        // Panggil initAutoRekomListeners di DOMContentLoaded
+        window.addEventListener('DOMContentLoaded', initAutoRekomListeners);
+
+        // =========================================================
         // FUNGSI PERBAIKI FORMAT TANGGAL DARI SERVER
         // =========================================================
         function formatWaktuSatelit(rawTgl, rawJam) {
