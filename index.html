@@ -91,7 +91,8 @@
             background: radial-gradient(circle at top, #1a1a24 0%, #000 100%);
         }
         
-        video { width: 100%; height: 100%; object-fit: cover; border-radius: 0 0 35px 35px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
+        video { width: 100%; height: 100%; object-fit: cover; border-radius: 0 0 35px 35px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); transition: transform 0.3s ease; }
+        video.mirrored { transform: scaleX(-1); }
 
         .top-nav {
             position: absolute; top: max(25px, env(safe-area-inset-top)); left: 16px; right: 16px; z-index: 15;
@@ -130,6 +131,12 @@
             border-color: rgba(255, 214, 10, 0.45) !important;
             color: #ffd60a !important;
             box-shadow: 0 0 16px rgba(255, 214, 10, 0.3);
+        }
+        .btn-icon.active {
+            background: rgba(56, 189, 248, 0.18) !important;
+            border-color: rgba(56, 189, 248, 0.45) !important;
+            color: var(--ios-blue) !important;
+            box-shadow: 0 0 16px rgba(56, 189, 248, 0.3);
         }
 
         #photo-preview {
@@ -925,6 +932,15 @@
                         <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
                     </svg>
                 </button>
+                <button id="toggle-camera-btn" class="btn-top btn-icon" onclick="toggleCameraDirection()" title="Ganti Kamera Depan/Belakang">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 10c0-4.418-3.582-8-8-8a7.994 7.994 0 0 0-7.33 4.805"></path>
+                        <path d="M4 2v4h4"></path>
+                        <path d="M4 14c0 4.418 3.582 8 8 8a7.994 7.994 0 0 0 7.33-4.805"></path>
+                        <path d="M20 22v-4h-4"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                </button>
             </div>
             <div class="nav-right">
                 <button class="btn-top btn-rekap" onclick="openRekap()">
@@ -1568,6 +1584,7 @@
         let isCameraActive = false;
         let currentStream = null;
         let isFlashActive = false;
+        let currentFacingMode = 'environment';
 
         const request = indexedDB.open("SurveyDB", 1);
         request.onupgradeneeded = (e) => {
@@ -1585,11 +1602,16 @@
 
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: 'environment', width: {ideal: 1920}, height: {ideal: 1080} } 
+                    video: { facingMode: currentFacingMode, width: {ideal: 1920}, height: {ideal: 1080} } 
                 });
                 video.srcObject = stream;
                 currentStream = stream;
                 isCameraActive = true;
+                if (currentFacingMode === 'user') {
+                    video.classList.add('mirrored');
+                } else {
+                    video.classList.remove('mirrored');
+                }
                 if (status) status.innerText = "Kamera Aktif • Siap Survei";
             } catch (e) {
                 console.warn("Gagal membuka kamera:", e);
@@ -2634,7 +2656,16 @@
                 let cW, cH, sx, sy;
                 if (sW / sH > 3 / 4) { cH = sH; cW = sH * (3 / 4); sx = (sW - cW) / 2; sy = 0; } 
                 else { cW = sW; cH = sW / (3 / 4); sx = 0; sy = (sH - cH) / 2; }
-                ctx.drawImage(video, sx, sy, cW, cH, 0, 0, 1200, 1600);
+                
+                if (currentFacingMode === 'user') {
+                    ctx.save();
+                    ctx.translate(1200, 0);
+                    ctx.scale(-1, 1);
+                    ctx.drawImage(video, sx, sy, cW, cH, 0, 0, 1200, 1600);
+                    ctx.restore();
+                } else {
+                    ctx.drawImage(video, sx, sy, cW, cH, 0, 0, 1200, 1600);
+                }
             } else {
                 ctx.fillStyle = "#111"; ctx.fillRect(0,0, 1200, 1600);
             }
@@ -2685,7 +2716,16 @@
                 let cW, cH, sx, sy;
                 if (sW / sH > 3 / 4) { cH = sH; cW = sH * (3 / 4); sx = (sW - cW) / 2; sy = 0; } 
                 else { cW = sW; cH = sW / (3 / 4); sx = 0; sy = (sH - cH) / 2; }
-                ctx.drawImage(video, sx, sy, cW, cH, 0, 0, 1200, 1600);
+                
+                if (currentFacingMode === 'user') {
+                    ctx.save();
+                    ctx.translate(1200, 0);
+                    ctx.scale(-1, 1);
+                    ctx.drawImage(video, sx, sy, cW, cH, 0, 0, 1200, 1600);
+                    ctx.restore();
+                } else {
+                    ctx.drawImage(video, sx, sy, cW, cH, 0, 0, 1200, 1600);
+                }
             } else {
                 ctx.fillStyle = "#0c0c0e"; ctx.fillRect(0, 0, 1200, 1600);
             }
@@ -4155,6 +4195,24 @@
         }
 
         // =========================================================
+        // FITUR KONTROL ARAH KAMERA (DEPAN / BELAKANG)
+        // =========================================================
+        async function toggleCameraDirection() {
+            currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment';
+            stopCamera();
+            await startCamera();
+
+            const btn = document.getElementById('toggle-camera-btn');
+            if (btn) {
+                if (currentFacingMode === 'user') {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            }
+        }
+
+        // =========================================================
         // FITUR KONTROL FLASH (TORCH / LAMPU KILAT)
         // =========================================================
         async function toggleFlash() {
@@ -4196,6 +4254,250 @@
                 if (btn) btn.classList.remove('active');
             }
         }
+
+        // =========================================================
+        // EDGE-SWIPE & GESTURE NAVIGATION SYSTEM WITH POPSTATE INTERCEPTOR
+        // =========================================================
+        let isPopStateActive = false;
+        let consecutiveBackCount = 0;
+        let lastBackTime = 0;
+
+        function showSwipeToast(text) {
+            let toast = document.getElementById('swipe-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'swipe-toast';
+                toast.style = `
+                    position: fixed;
+                    bottom: 80px;
+                    left: 50%;
+                    transform: translateX(-50%) translateY(20px);
+                    background: rgba(18, 16, 26, 0.9);
+                    color: #ffffff;
+                    padding: var(--pi-3) var(--pi-5);
+                    border-radius: var(--pi-6);
+                    font-size: 12px;
+                    font-weight: 600;
+                    z-index: 99999;
+                    backdrop-filter: blur(10px);
+                    -webkit-backdrop-filter: blur(10px);
+                    border: 1px solid rgba(255, 255, 255, 0.25);
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+                    opacity: 0;
+                    transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+                    pointer-events: none;
+                `;
+                document.body.appendChild(toast);
+            }
+            toast.innerText = text;
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateX(-50%) translateY(0)';
+            
+            clearTimeout(toast.timeoutId);
+            toast.timeoutId = setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(-50%) translateY(20px)';
+            }, 2000);
+        }
+
+        function closeAllOverlays() {
+            if (document.getElementById('ios-confirm-overlay') && document.getElementById('ios-confirm-overlay').style.display === 'flex') closeConfirm();
+            if (document.getElementById('ios-alert') && document.getElementById('ios-alert').style.display === 'flex') closeAlert();
+            if (document.getElementById('detail-modal') && document.getElementById('detail-modal').style.display === 'flex') closeDetail();
+            if (document.getElementById('chart-panel') && document.getElementById('chart-panel').style.display === 'flex') closeChartPanel();
+            if (document.getElementById('ios-modal-overlay') && document.getElementById('ios-modal-overlay').style.display === 'flex') closeModal();
+            if (document.getElementById('history-modal') && document.getElementById('history-modal').style.display === 'flex') closeHistory();
+            if (document.getElementById('rekap-modal') && document.getElementById('rekap-modal').style.display === 'flex') closeRekap();
+            if (document.getElementById('admin-panel') && document.getElementById('admin-panel').style.display === 'flex') closeAdminPanel();
+            if (document.getElementById('petugas-modal-overlay') && document.getElementById('petugas-modal-overlay').style.display === 'flex') {
+                document.getElementById('petugas-modal-overlay').classList.remove('show');
+                setTimeout(() => { document.getElementById('petugas-modal-overlay').style.display = 'none'; startCamera(); }, 300);
+            }
+        }
+
+        function syncOverlaysWithState(targetView) {
+            const modals = [
+                'ios-modal-overlay',
+                'history-modal',
+                'detail-modal',
+                'rekap-modal',
+                'admin-panel',
+                'chart-panel',
+                'petugas-modal-overlay'
+            ];
+            
+            modals.forEach(id => {
+                if (id !== targetView) {
+                    let shouldClose = true;
+                    if (targetView === 'history-modal' && id === 'history-modal') shouldClose = false;
+                    if (targetView === 'rekap-modal' && id === 'rekap-modal') shouldClose = false;
+                    if (targetView === 'admin-panel' && id === 'admin-panel') shouldClose = false;
+                    
+                    if (targetView === 'history-modal' && id === 'detail-modal') {
+                        shouldClose = true;
+                    } else if (targetView === 'rekap-modal' && (id === 'chart-panel' || id === 'detail-modal')) {
+                        shouldClose = true;
+                    } else if (id === targetView) {
+                        shouldClose = false;
+                    }
+                    
+                    if (shouldClose) {
+                        const el = document.getElementById(id);
+                        if (el && el.style.display === 'flex') {
+                            if (id === 'ios-modal-overlay') closeModal();
+                            else if (id === 'history-modal') closeHistory();
+                            else if (id === 'detail-modal') closeDetail();
+                            else if (id === 'rekap-modal') closeRekap();
+                            else if (id === 'admin-panel') closeAdminPanel();
+                            else if (id === 'chart-panel') closeChartPanel();
+                            else if (id === 'petugas-modal-overlay') {
+                                document.getElementById('petugas-modal-overlay').classList.remove('show');
+                                setTimeout(() => { document.getElementById('petugas-modal-overlay').style.display = 'none'; startCamera(); }, 300);
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function handleRootBack() {
+            const now = Date.now();
+            if (now - lastBackTime < 2500) {
+                consecutiveBackCount++;
+            } else {
+                consecutiveBackCount = 1;
+            }
+            lastBackTime = now;
+
+            if (consecutiveBackCount >= 4) {
+                showSwipeToast("Keluar dari aplikasi...");
+                setTimeout(() => {
+                    history.back(); // natural back to escape the app history context
+                }, 800);
+            } else {
+                // Restore buffer state to prevent browser exit
+                history.pushState({ rootBuffer: true }, "");
+                const remaining = 4 - consecutiveBackCount;
+                showSwipeToast(`Swipe ${remaining} kali lagi untuk keluar`);
+            }
+        }
+
+        // Initialize state inside history context
+        window.addEventListener('DOMContentLoaded', () => {
+            history.replaceState({ root: true }, "");
+            history.pushState({ rootBuffer: true }, "");
+        });
+
+        window.addEventListener('popstate', (event) => {
+            isPopStateActive = true;
+            try {
+                const state = event.state;
+                if (!state) return;
+
+                if (state.root) {
+                    handleRootBack();
+                    return;
+                }
+
+                if (state.rootBuffer) {
+                    closeAllOverlays();
+                    return;
+                }
+
+                if (state.view) {
+                    syncOverlaysWithState(state.view);
+                    return;
+                }
+            } catch (e) {
+                console.error("Popup navigation error:", e);
+            } finally {
+                setTimeout(() => {
+                    isPopStateActive = false;
+                }, 80);
+            }
+        });
+
+        // Setup MutationObservers to dynamically map opens & manual closes to history
+        window.addEventListener('DOMContentLoaded', () => {
+            const modalsToObserve = [
+                'ios-modal-overlay',
+                'history-modal',
+                'detail-modal',
+                'rekap-modal',
+                'admin-panel',
+                'chart-panel',
+                'petugas-modal-overlay'
+            ];
+
+            modalsToObserve.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+
+                let lastDisplay = el.style.display;
+
+                const observer = new MutationObserver((mutations) => {
+                    mutations.forEach((mutation) => {
+                        if (mutation.attributeName === 'style') {
+                            const currentDisplay = el.style.display;
+                            if (currentDisplay !== lastDisplay) {
+                                if (currentDisplay === 'flex' || currentDisplay === 'block') {
+                                    if (!isPopStateActive) {
+                                        history.pushState({ view: id }, "");
+                                    }
+                                } else if (currentDisplay === 'none') {
+                                    if (!isPopStateActive) {
+                                        if (history.state && history.state.view === id) {
+                                            history.back();
+                                        }
+                                    }
+                                }
+                                lastDisplay = currentDisplay;
+                            }
+                        }
+                    });
+                });
+
+                observer.observe(el, { attributes: true, attributeFilter: ['style'] });
+            });
+        });
+
+        // Touch event listeners to detect edge swiping (left and right edges)
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchStartTime = 0;
+
+        window.addEventListener('touchstart', (e) => {
+            if (e.touches.length !== 1) return;
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            touchStartTime = Date.now();
+        }, { passive: true });
+
+        window.addEventListener('touchend', (e) => {
+            if (e.changedTouches.length !== 1) return;
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            const duration = Date.now() - touchStartTime;
+
+            if (duration > 500) return; // Snappy swiping only
+
+            const diffX = touchEndX - touchStartX;
+            const diffY = touchEndY - touchStartY;
+
+            // Check if the gesture was primarily horizontal
+            if (Math.abs(diffX) > 60 && Math.abs(diffY) < 40) {
+                const isLeftEdge = touchStartX < 50;
+                const isRightEdge = touchStartX > window.innerWidth - 50;
+
+                if (isLeftEdge && diffX > 0) {
+                    // Swipe right from left edge -> Back
+                    history.back();
+                } else if (isRightEdge && diffX < 0) {
+                    // Swipe left from right edge -> Back
+                    history.back();
+                }
+            }
+        }, { passive: true });
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
