@@ -4583,6 +4583,47 @@
             }
         }, { passive: true });
 
+        // =========================================================
+        // DOUBLE TAP / DOUBLE CLICK TO FLIP CAMERA DIRECTION
+        // =========================================================
+        function initDoubleTapCameraToggle() {
+            const viewport = document.getElementById('viewport');
+            if (!viewport) return;
+
+            let lastTap = 0;
+            const tapDelay = 300; // ms
+
+            // Mobile double tap
+            viewport.addEventListener('touchstart', (e) => {
+                if (e.target.closest('.top-nav') || e.target.closest('button')) return;
+                
+                const now = Date.now();
+                if (now - lastTap < tapDelay) {
+                    // Double tap! Trigger flip with premium screen flash effect
+                    const f = document.getElementById('flash');
+                    if (f) {
+                        f.classList.add('flash-anim');
+                        setTimeout(() => f.classList.remove('flash-anim'), 400);
+                    }
+                    toggleCameraDirection();
+                }
+                lastTap = now;
+            }, { passive: true });
+
+            // Desktop double click
+            viewport.addEventListener('dblclick', (e) => {
+                if (e.target.closest('.top-nav') || e.target.closest('button')) return;
+                const f = document.getElementById('flash');
+                if (f) {
+                    f.classList.add('flash-anim');
+                    setTimeout(() => f.classList.remove('flash-anim'), 400);
+                }
+                toggleCameraDirection();
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', initDoubleTapCameraToggle);
+
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
