@@ -1,4 +1,4 @@
-const CACHE_NAME = 'survey-app-v4'; 
+const CACHE_NAME = 'survey-app-v9'; 
 const URLS_TO_CACHE = [
     './',
     './index.html',
